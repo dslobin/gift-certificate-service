@@ -7,8 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class TagRowMapper implements RowMapper<Tag> {
-    static final String COLUMN_ID = "id";
-    static final String COLUMN_NAME = "name";
+    private static final String COLUMN_ID = "id";
+    private static final String COLUMN_NAME = "name";
 
     @Override
     public Tag mapRow(ResultSet rs, int rowNum) throws SQLException {

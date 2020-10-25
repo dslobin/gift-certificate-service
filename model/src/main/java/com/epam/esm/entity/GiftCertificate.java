@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,5 +21,5 @@ public class GiftCertificate {
     private LocalDate createDate;
     private LocalDate lastUpdateDate;
     private Duration duration;
-    private Tag tag;
+    private List<Tag> tags = new ArrayList<>();
 }
