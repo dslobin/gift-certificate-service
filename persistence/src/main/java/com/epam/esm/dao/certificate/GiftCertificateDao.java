@@ -10,7 +10,9 @@ public interface GiftCertificateDao {
 
     Optional<GiftCertificate> findById(long id);
 
-    void save(GiftCertificate giftCertificate);
+    long save(GiftCertificate giftCertificate);
+
+    void saveCertificateTag(long certificateId, long tagId);
 
     void deleteById(long id);
 }

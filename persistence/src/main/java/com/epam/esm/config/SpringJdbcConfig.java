@@ -14,13 +14,10 @@ import javax.sql.DataSource;
 public class SpringJdbcConfig {
     @Value("${datasource.driver}")
     private String driver;
-
     @Value("${datasource.url}")
     private String url;
-
     @Value("${datasource.username}")
     private String username;
-
     @Value("#{environment.POSTGRES_DB_PASSWORD}")
     private String password;
 

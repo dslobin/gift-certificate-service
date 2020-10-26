@@ -55,9 +55,20 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
     }
 
     @Override
-    public void save(GiftCertificate giftCertificate) {
+    public void saveCertificateTag(long certificateId, long tagId) {
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("gift_certificate_tag");
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("gift_certificate_id", certificateId);
+        parameters.put("tag_id", tagId);
+        simpleJdbcInsert.execute(parameters);
+    }
+
+    @Override
+    public long save(GiftCertificate giftCertificate) {
         Map<String, Object> certificateParams = getCertificateParameters(giftCertificate);
-        this.jdbcInsert.execute(certificateParams);
+        Number certificateId = this.jdbcInsert.executeAndReturnKey(certificateParams);
+        return certificateId.longValue();
     }
 
     private Map<String, Object> getCertificateParameters(GiftCertificate certificate) {

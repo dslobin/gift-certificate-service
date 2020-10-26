@@ -65,10 +65,11 @@ public class JdbcTagDao implements TagDao {
     }
 
     @Override
-    public void save(Tag tag) {
+    public long save(Tag tag) {
         Map<String, Object> tagParams = new HashMap<>();
         tagParams.put("name", tag.getName());
-        this.jdbcInsert.execute(tagParams);
+        Number tagId = this.jdbcInsert.executeAndReturnKey(tagParams);
+        return tagId.longValue();
     }
 
     @Override
