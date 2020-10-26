@@ -15,6 +15,7 @@ import java.util.Optional;
 @Repository
 public class JdbcTagDao implements TagDao {
     private JdbcTemplate jdbcTemplate;
+    private SimpleJdbcInsert jdbcInsert;
 
     private static final String FIND_ALL =
             "SELECT id, name FROM tags";
@@ -38,6 +39,9 @@ public class JdbcTagDao implements TagDao {
     @Autowired
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.jdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("tags")
+                .usingGeneratedKeyColumns("id");
     }
 
     @Override
@@ -62,18 +66,13 @@ public class JdbcTagDao implements TagDao {
 
     @Override
     public void save(Tag tag) {
-        SimpleJdbcInsert simpleJdbcInsert =
-                new SimpleJdbcInsert(jdbcTemplate)
-                        .withTableName("tags");
         Map<String, Object> tagParams = new HashMap<>();
         tagParams.put("name", tag.getName());
-        simpleJdbcInsert.execute(tagParams);
+        this.jdbcInsert.execute(tagParams);
     }
 
     @Override
     public void deleteById(long id) {
-        Map<String, Object> tagParams = new HashMap<>();
-        tagParams.put("id", id);
-        jdbcTemplate.update(DELETE_BY_ID, tagParams);
+        jdbcTemplate.update(DELETE_BY_ID, id);
     }
 }

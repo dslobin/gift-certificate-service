@@ -16,6 +16,7 @@ import java.util.Optional;
 @Repository
 public class JdbcGiftCertificateDao implements GiftCertificateDao {
     private JdbcTemplate jdbcTemplate;
+    private SimpleJdbcInsert jdbcInsert;
     private TagDao tagDao;
 
     private static final String FIND_ALL =
@@ -33,6 +34,9 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
     @Autowired
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.jdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("gift_certificates")
+                .usingGeneratedKeyColumns("id");
     }
 
     @Autowired
@@ -52,11 +56,8 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
 
     @Override
     public void save(GiftCertificate giftCertificate) {
-        SimpleJdbcInsert simpleJdbcInsert =
-                new SimpleJdbcInsert(jdbcTemplate)
-                        .withTableName("gift_certificates");
         Map<String, Object> certificateParams = getCertificateParameters(giftCertificate);
-        simpleJdbcInsert.execute(certificateParams);
+        this.jdbcInsert.execute(certificateParams);
     }
 
     private Map<String, Object> getCertificateParameters(GiftCertificate certificate) {
@@ -73,8 +74,6 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
 
     @Override
     public void deleteById(long id) {
-        Map<String, Object> certificateParams = new HashMap<>();
-        certificateParams.put("id", id);
-        jdbcTemplate.update(DELETE_BY_ID, certificateParams);
+        jdbcTemplate.update(DELETE_BY_ID, id);
     }
 }
