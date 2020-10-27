@@ -2,7 +2,6 @@ package com.epam.esm.dao.certificate;
 
 import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.GiftCertificate;
-import org.postgresql.util.PGInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -38,13 +37,8 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificate> {
         if (rs.getDate(COLUMN_LAST_UPDATE_DATE) != null) {
             certificate.setLastUpdateDate(rs.getDate(COLUMN_LAST_UPDATE_DATE).toLocalDate());
         }
-        certificate.setDuration(intervalToDuration(rs.getString(COLUMN_DURATION)));
+        certificate.setDuration(Duration.ofDays(rs.getLong(COLUMN_DURATION)));
         certificate.setTags(tagDao.findAllByGiftCertificateId(certificateId));
         return certificate;
-    }
-
-    private Duration intervalToDuration(String daysAmount) throws SQLException {
-        PGInterval interval = new PGInterval(daysAmount);
-        return Duration.ofDays(interval.getDays());
     }
 }

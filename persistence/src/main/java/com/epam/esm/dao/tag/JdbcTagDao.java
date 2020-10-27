@@ -37,6 +37,7 @@ public class JdbcTagDao implements TagDao {
             "DELETE FROM tags WHERE id = ?";
 
     @Autowired
+    @Override
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.jdbcInsert = new SimpleJdbcInsert(jdbcTemplate)

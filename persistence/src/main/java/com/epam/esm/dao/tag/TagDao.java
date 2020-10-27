@@ -2,6 +2,7 @@ package com.epam.esm.dao.tag;
 
 import com.epam.esm.entity.Tag;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,4 +18,6 @@ public interface TagDao {
     long save(Tag tag);
 
     void deleteById(long id);
+
+    void setDataSource(DataSource dataSource);
 }

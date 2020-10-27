@@ -32,6 +32,7 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
             "DELETE FROM gift_certificates WHERE id = ?";
 
     @Autowired
+    @Override
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.jdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
@@ -79,7 +80,7 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
         parameters.put("price", certificate.getPrice());
         parameters.put("create_date", certificate.getCreateDate());
         parameters.put("last_update_date", certificate.getLastUpdateDate());
-        parameters.put("duration", certificate.getDuration());
+        parameters.put("duration", certificate.getDuration().toDays());
         return parameters;
     }
 
