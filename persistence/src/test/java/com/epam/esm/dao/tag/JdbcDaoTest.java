@@ -105,13 +105,9 @@ class JdbcDaoTest {
         certificate.setTags(tags);
         certificateDao.save(certificate);
 
-        for (Tag tag : tags) {
-            tagDao.save(tag);
-        }
+        tags.forEach(tag -> tagDao.save(tag));
 
-        for (Tag tag : tags) {
-            certificateDao.saveCertificateTag(certificateId, tag.getId());
-        }
+        tags.forEach(tag -> certificateDao.saveCertificateTag(certificateId, tag.getId()));
 
         GiftCertificate certificateFromDb = certificateDao.findById(certificateId).get();
         List<Tag> tagsFromSavedCertificate = certificateFromDb.getTags();

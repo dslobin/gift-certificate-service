@@ -2,8 +2,7 @@ package com.epam.esm.controller;
 
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,18 +12,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tags")
+@RequiredArgsConstructor
 public class TagController {
     private final TagService tagService;
 
-    @Autowired
-    public TagController(TagService tagService) {
-        this.tagService = tagService;
-    }
-
     @GetMapping
     public ResponseEntity<List<Tag>> getAllTags() {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(null);
+        List<Tag> tags = tagService.findAll();
+        return ResponseEntity.ok(tags);
     }
+
+
 }

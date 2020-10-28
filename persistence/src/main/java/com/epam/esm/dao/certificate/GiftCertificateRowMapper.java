@@ -2,13 +2,14 @@ package com.epam.esm.dao.certificate;
 
 import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.GiftCertificate;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 
+@RequiredArgsConstructor
 public class GiftCertificateRowMapper implements RowMapper<GiftCertificate> {
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
@@ -18,12 +19,7 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificate> {
     private static final String COLUMN_LAST_UPDATE_DATE = "last_update_date";
     private static final String COLUMN_DURATION = "duration";
 
-    private TagDao tagDao;
-
-    @Autowired
-    public GiftCertificateRowMapper(TagDao tagDao) {
-        this.tagDao = tagDao;
-    }
+    private final TagDao tagDao;
 
     @Override
     public GiftCertificate mapRow(ResultSet rs, int rowNum) throws SQLException {
