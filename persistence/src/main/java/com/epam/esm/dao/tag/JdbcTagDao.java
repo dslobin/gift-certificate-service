@@ -7,10 +7,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class JdbcTagDao implements TagDao {
@@ -46,13 +43,19 @@ public class JdbcTagDao implements TagDao {
     }
 
     @Override
-    public List<Tag> findAll() {
-        return jdbcTemplate.query(FIND_ALL, new TagRowMapper());
+    public Set<Tag> findAll() {
+        List<Tag> tagList = jdbcTemplate.query(FIND_ALL, new TagRowMapper());
+        return new HashSet<>(tagList);
     }
 
     @Override
-    public List<Tag> findAllByGiftCertificateId(long giftCertificateId) {
-        return jdbcTemplate.query(FIND_ALL_BY_GIFT_CERTIFICATE_ID, new Object[]{giftCertificateId}, new TagRowMapper());
+    public Set<Tag> findAllByGiftCertificateId(long giftCertificateId) {
+        List<Tag> tagList = jdbcTemplate.query(
+                FIND_ALL_BY_GIFT_CERTIFICATE_ID,
+                new Object[]{giftCertificateId},
+                new TagRowMapper()
+        );
+        return new HashSet<>(tagList);
     }
 
     @Override

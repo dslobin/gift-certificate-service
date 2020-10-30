@@ -5,9 +5,13 @@ import com.epam.esm.entity.GiftCertificate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @RequiredArgsConstructor
 public class GiftCertificateRowMapper implements RowMapper<GiftCertificate> {
@@ -29,12 +33,17 @@ public class GiftCertificateRowMapper implements RowMapper<GiftCertificate> {
         certificate.setName(rs.getString(COLUMN_NAME));
         certificate.setDescription(rs.getString(COLUMN_DESCRIPTION));
         certificate.setPrice(rs.getBigDecimal(COLUMN_PRICE));
-        certificate.setCreateDate(rs.getDate(COLUMN_CREATE_DATE).toLocalDate());
+        certificate.setCreateDate(convertSqlDateToZonedDateTime(rs.getDate(COLUMN_CREATE_DATE)));
         if (rs.getDate(COLUMN_LAST_UPDATE_DATE) != null) {
-            certificate.setLastUpdateDate(rs.getDate(COLUMN_LAST_UPDATE_DATE).toLocalDate());
+            certificate.setLastUpdateDate(convertSqlDateToZonedDateTime(rs.getDate(COLUMN_LAST_UPDATE_DATE)));
         }
         certificate.setDuration(Duration.ofDays(rs.getLong(COLUMN_DURATION)));
         certificate.setTags(tagDao.findAllByGiftCertificateId(certificateId));
         return certificate;
+    }
+
+    private ZonedDateTime convertSqlDateToZonedDateTime(Date sqlDate) {
+        LocalDateTime localDateTime = sqlDate.toLocalDate().atStartOfDay();
+        return ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
     }
 }

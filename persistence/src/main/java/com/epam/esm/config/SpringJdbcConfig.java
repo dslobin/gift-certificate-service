@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 
 
 @Configuration
-@PropertySource("classpath:db.properties")
+@PropertySource("classpath:database.properties")
 public class SpringJdbcConfig {
     @Value("${datasource.driver}")
     private String driver;

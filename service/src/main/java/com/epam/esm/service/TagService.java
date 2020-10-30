@@ -2,15 +2,15 @@ package com.epam.esm.service;
 
 import com.epam.esm.entity.Tag;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface TagService {
-    List<Tag> findAll();
+    Set<Tag> findAll();
 
     Optional<Tag> findById(long id);
 
-    void create(Tag tag);
+    Tag create(Tag tag);
 
     void deleteById(long id);
 }

@@ -6,8 +6,8 @@ import com.epam.esm.service.TagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -15,7 +15,7 @@ public class TagServiceImpl implements TagService {
     private final TagDao tagDao;
 
     @Override
-    public List<Tag> findAll() {
+    public Set<Tag> findAll() {
         return tagDao.findAll();
     }
 
@@ -25,8 +25,10 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public void create(Tag tag) {
-        tagDao.save(tag);
+    public Tag create(Tag tag) {
+        long tagId = tagDao.save(tag);
+        tag.setId(tagId);
+        return tag;
     }
 
     @Override

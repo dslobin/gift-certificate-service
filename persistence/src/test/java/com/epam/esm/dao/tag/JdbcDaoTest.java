@@ -1,66 +1,32 @@
 package com.epam.esm.dao.tag;
 
 import com.epam.esm.dao.certificate.GiftCertificateDao;
-import com.epam.esm.dao.certificate.JdbcGiftCertificateDao;
+import com.epam.esm.dao.config.JdbcContextConfiguration;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import javax.sql.DataSource;
-
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.time.ZonedDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = JdbcContextConfiguration.class, loader = AnnotationConfigContextLoader.class)
 @Sql(scripts = {"classpath:schema.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class JdbcDaoTest {
-
-    @Configuration
-    static class ContextConfiguration {
-        @Bean
-        public GiftCertificateDao giftCertificateDao() {
-            GiftCertificateDao jdbcCertificateDao = new JdbcGiftCertificateDao();
-            jdbcCertificateDao.setDataSource(hsqlDataSource());
-            return jdbcCertificateDao;
-        }
-
-        @Bean
-        public TagDao tagDao() {
-            TagDao jdbcTagDao = new JdbcTagDao();
-            jdbcTagDao.setDataSource(hsqlDataSource());
-            return jdbcTagDao;
-        }
-
-        @Bean
-        public DataSource hsqlDataSource() {
-            return new EmbeddedDatabaseBuilder()
-                    .setType(EmbeddedDatabaseType.H2)
-                    .setScriptEncoding("UTF-8")
-                    .setName("gift-certificate-service-test")
-                    .addScript("schema.sql")
-                    .build();
-        }
-    }
-
     @Autowired
     private TagDao tagDao;
-
     @Autowired
     private GiftCertificateDao certificateDao;
 
@@ -77,40 +43,41 @@ class JdbcDaoTest {
 
     @Test
     void givenMultipleTags_whenSave_thenGetCorrectCount() {
-        Tag tagActiveRest = new Tag(1L, "Active_rest");
-        tagDao.save(tagActiveRest);
+        Set<Tag> tags = Stream.of(
+                new Tag(1L, "Active_rest"),
+                new Tag(2L, "Romantic"),
+                new Tag(3L, "Motorists")
+        ).collect(Collectors.toSet());
 
-        Tag tagRomantic = new Tag(2L, "Romantic");
-        tagDao.save(tagRomantic);
+        tags.forEach(tag -> tagDao.save(tag));
 
-        Tag tagMotorists = new Tag(3L, "Motorists");
-        tagDao.save(tagMotorists);
-
-        List<Tag> tags = tagDao.findAll();
+        Set<Tag> tagsFromDb = tagDao.findAll();
         int expectedTagsCount = 3;
-        assertEquals(expectedTagsCount, tags.size());
+        assertEquals(expectedTagsCount, tagsFromDb.size());
     }
 
     @Test
-    public void givenCertificateWithTags_whenSave_thenGetCorrectTagCount() {
+    void givenCertificateWithTags_whenSave_thenGetCorrectTagCount() {
         GiftCertificate certificate = new GiftCertificate();
-        long certificateId = 1;
-        certificate.setId(certificateId);
         certificate.setName("Gift Certificate for business");
         certificate.setDescription("If you’re in business, you know that gift certificate cards are a must.");
         certificate.setPrice(BigDecimal.valueOf(11.99));
-        certificate.setCreateDate(LocalDate.now());
+        certificate.setCreateDate(ZonedDateTime.now());
         certificate.setDuration(Duration.ofDays(7));
-        List<Tag> tags = Arrays.asList(new Tag(1L, "Exclusive"), new Tag(2L, "Business"));
+        Set<Tag> tags = Stream.of(
+                new Tag(1L, "Exclusive"),
+                new Tag(2L, "Business")
+        ).collect(Collectors.toSet());
         certificate.setTags(tags);
         certificateDao.save(certificate);
 
         tags.forEach(tag -> tagDao.save(tag));
 
+        long certificateId = 1;
         tags.forEach(tag -> certificateDao.saveCertificateTag(certificateId, tag.getId()));
 
         GiftCertificate certificateFromDb = certificateDao.findById(certificateId).get();
-        List<Tag> tagsFromSavedCertificate = certificateFromDb.getTags();
+        Set<Tag> tagsFromSavedCertificate = certificateFromDb.getTags();
         assertEquals(tags.size(), tagsFromSavedCertificate.size());
     }
 }
