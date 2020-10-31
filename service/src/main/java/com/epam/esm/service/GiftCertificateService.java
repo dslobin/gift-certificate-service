@@ -5,11 +5,12 @@ import com.epam.esm.entity.Tag;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface GiftCertificateService {
     Optional<GiftCertificate> findById(long id);
 
-    void create(GiftCertificate giftCertificate, List<Tag> certificateTags);
+    GiftCertificate create(GiftCertificate giftCertificate, Set<Tag> certificateTags);
 
     List<GiftCertificate> findAll();
 

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public void create(GiftCertificate giftCertificate, List<Tag> certificateTags) {
+    public GiftCertificate create(GiftCertificate giftCertificate, Set<Tag> certificateTags) {
         List<Long> tagIds = new ArrayList<>();
         certificateTags.forEach(tag -> {
             Optional<Tag> existingTag = tagDao.findByName(tag.getName());
@@ -37,6 +38,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         });
         long certificateId = giftCertificateDao.save(giftCertificate);
         tagIds.forEach(tagId -> giftCertificateDao.saveCertificateTag(certificateId, tagId));
+
+        giftCertificate.setId(certificateId);
+        return giftCertificate;
     }
 
     @Override
