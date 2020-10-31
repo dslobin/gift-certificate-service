@@ -19,7 +19,6 @@ subprojects {
         mavenCentral()
     }
 
-    //TODO: удалить fasterxml
     dependencies {
         implementation group: 'org.springframework', name: 'spring-context', version: '5.2.9.RELEASE'
         implementation group: 'org.springframework', name: 'spring-core', version: '5.2.9.RELEASE'
@@ -29,7 +28,10 @@ subprojects {
         implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.18'
         implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.11.3'
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.11.3'
         implementation group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5'
+        implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+
         providedCompile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
 
         def tomcatVersion = '9.0.1'

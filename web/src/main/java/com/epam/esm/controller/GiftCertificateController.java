@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @RestController("/api/certificates")
@@ -48,7 +48,7 @@ public class GiftCertificateController {
 
     @PostMapping
     public ResponseEntity<GiftCertificate> createCertificate(@RequestBody GiftCertificate certificate) {
-        giftCertificateService.create(certificate, new ArrayList<>());
+        giftCertificateService.create(certificate, new HashSet<>());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(certificate);
