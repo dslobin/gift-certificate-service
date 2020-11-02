@@ -4,3 +4,5 @@ include 'model'
 include 'persistence'
 include 'service'
 include 'web'
+include 'logging'
+

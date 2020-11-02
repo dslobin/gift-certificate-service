@@ -3,4 +3,5 @@ apply plugin: 'war'
 dependencies {
     implementation project(':model')
     implementation project(':service')
+    implementation project(':logging')
 }
