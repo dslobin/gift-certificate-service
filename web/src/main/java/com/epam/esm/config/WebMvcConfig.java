@@ -1,6 +1,5 @@
 package com.epam.esm.config;
 
-import com.epam.esm.controller.TagController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +13,7 @@ import org.springframework.web.servlet.view.JstlView;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackageClasses = {TagController.class})
+@ComponentScan(basePackages = {"com.epam.esm.controller"})
 public class WebMvcConfig implements WebMvcConfigurer {
     private static final String VIEW_RESOLVER_PREFIX = "/WEB-INF/jsp/";
     private static final String VIEW_RESOLVER_SUFFIX = ".jsp";
