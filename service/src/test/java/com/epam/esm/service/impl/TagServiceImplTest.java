@@ -38,8 +38,6 @@ class TagServiceImplTest {
         Tag savedTag = tagService.create(tag);
 
         assertThat(savedTag).isNotNull();
-        int wantedNumberOfInvocations = 1;
-        verify(tagDao, times(wantedNumberOfInvocations)).save(any(Tag.class));
     }
 
     @Test

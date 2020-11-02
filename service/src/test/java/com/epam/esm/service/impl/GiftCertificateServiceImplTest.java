@@ -83,8 +83,6 @@ class GiftCertificateServiceImplTest {
         GiftCertificate savedCertificate = certificateService.create(certificate, certificate.getTags());
 
         assertThat(savedCertificate).isNotNull();
-        int wantedNumberOfInvocations = 1;
-        verify(certificateDao, times(wantedNumberOfInvocations)).save(any(GiftCertificate.class));
     }
 
     @Test
