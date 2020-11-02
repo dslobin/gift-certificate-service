@@ -19,6 +19,30 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
     private SimpleJdbcInsert jdbcInsert;
     private TagDao tagDao;
 
+    private static final String FIND_WITH_PARAMETERS =
+            "SELECT "
+                    + "public.gift_certificates.id AS certificate_id, "
+                    + "public.gift_certificates.name AS certificate_name, "
+                    + "public.gift_certificates.description, "
+                    + "public.gift_certificates.price, "
+                    + "public.gift_certificates.create_date, "
+                    + "public.gift_certificates.last_update_date, "
+                    + "public.gift_certificates.duration, "
+                    + "public.tags.id AS tag_id, "
+                    + "public.tags.name AS tag_name "
+                    + "FROM  "
+                    + "public.gift_certificates "
+                    + "JOIN public.gift_certificate_tag "
+                    + "ON public.gift_certificates.id = public.gift_certificate_tag.gift_certificate_id "
+                    + "JOIN public.tags "
+                    + "ON public.gift_certificate_tag.tag_id = public.tags.id "
+                    + "WHERE "
+                    + "public.tags.name = 'Exclusive' "
+                    + "OR public.gift_certificates.name ILIKE '%' || 'арт' || '%' "
+                    + "OR public.gift_certificates.description ILIKE '%' || 'Минск' || '%' "
+                    + "ORDER BY  "
+                    + "public.gift_certificates.name ASC";
+
     private static final String FIND_ALL =
             "SELECT gift_certificates.id, gift_certificates.name, gift_certificates.description," +
                     " gift_certificates.price, gift_certificates.create_date," +

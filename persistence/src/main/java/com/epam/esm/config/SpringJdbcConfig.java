@@ -18,7 +18,7 @@ public class SpringJdbcConfig {
     private String url;
     @Value("${datasource.username}")
     private String username;
-    @Value("#{environment.POSTGRES_DB_PASSWORD}")
+    @Value("${datasource.password}")
     private String password;
     @Value("${datasource.maxPoolSize}")
     private Integer maxPoolSize;
