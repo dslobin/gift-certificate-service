@@ -28,6 +28,7 @@ subprojects {
         implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.4.0'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.11.3'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.11.3'
+        implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.11.3'
         implementation group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5'
         implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
         implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '8.0.47'

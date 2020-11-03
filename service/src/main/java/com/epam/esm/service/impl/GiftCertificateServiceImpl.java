@@ -8,7 +8,7 @@ import com.epam.esm.service.GiftCertificateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,14 +25,15 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    public GiftCertificate create(GiftCertificate giftCertificate, Set<Tag> certificateTags) {
-        List<Long> tagIds = new ArrayList<>();
-        certificateTags.forEach(tag -> {
+    public GiftCertificate create(GiftCertificate giftCertificate) {
+        Set<Long> tagIds = new HashSet<>();
+        giftCertificate.getTags().forEach(tag -> {
             Optional<Tag> existingTag = tagDao.findByName(tag.getName());
             if (existingTag.isPresent()) {
                 tagIds.add(tag.getId());
             } else {
-                long insertedTagId = tagDao.save(tag);
+                long insertedTagId = tagDao.save(tag.getName());
+                tag.setId(insertedTagId);
                 tagIds.add(insertedTagId);
             }
         });
@@ -46,6 +47,11 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     public List<GiftCertificate> findAll() {
         return giftCertificateDao.findAll();
+    }
+
+    @Override
+    public List<GiftCertificate> findAll(String tag, String name, String description, String sort) {
+        return giftCertificateDao.findAll(tag, name, description, sort);
     }
 
     @Override

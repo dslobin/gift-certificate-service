@@ -41,12 +41,12 @@ public class TagController {
      * @return empty response
      * @throws TagNotFoundException if the specified tag does not exist
      */
-    @DeleteMapping("/${id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
         Tag tag = tagService.findById(id)
                 .orElseThrow(() -> new TagNotFoundException(id));
         tagService.deleteById(tag.getId());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**

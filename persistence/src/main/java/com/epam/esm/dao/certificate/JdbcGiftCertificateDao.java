@@ -3,45 +3,31 @@ package com.epam.esm.dao.certificate;
 import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.GiftCertificate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class JdbcGiftCertificateDao implements GiftCertificateDao {
     private JdbcTemplate jdbcTemplate;
     private SimpleJdbcInsert jdbcInsert;
+    private NamedParameterJdbcTemplate namedJdbcTemplate;
     private TagDao tagDao;
 
-    private static final String FIND_WITH_PARAMETERS =
-            "SELECT "
-                    + "public.gift_certificates.id AS certificate_id, "
-                    + "public.gift_certificates.name AS certificate_name, "
-                    + "public.gift_certificates.description, "
-                    + "public.gift_certificates.price, "
-                    + "public.gift_certificates.create_date, "
-                    + "public.gift_certificates.last_update_date, "
-                    + "public.gift_certificates.duration, "
-                    + "public.tags.id AS tag_id, "
-                    + "public.tags.name AS tag_name "
-                    + "FROM  "
-                    + "public.gift_certificates "
-                    + "JOIN public.gift_certificate_tag "
-                    + "ON public.gift_certificates.id = public.gift_certificate_tag.gift_certificate_id "
-                    + "JOIN public.tags "
-                    + "ON public.gift_certificate_tag.tag_id = public.tags.id "
-                    + "WHERE "
-                    + "public.tags.name = 'Exclusive' "
-                    + "OR public.gift_certificates.name ILIKE '%' || 'арт' || '%' "
-                    + "OR public.gift_certificates.description ILIKE '%' || 'Минск' || '%' "
-                    + "ORDER BY  "
-                    + "public.gift_certificates.name ASC";
+    private static final String SELECT_CERTIFICATES_WITH_TAGS =
+            "SELECT gift_certificates.id, gift_certificates.name, gift_certificates.description," +
+                    " gift_certificates.price, gift_certificates.create_date, gift_certificates.last_update_date," +
+                    " gift_certificates.duration, tags.id AS tag_id, tags.name AS tag_name" +
+                    " FROM gift_certificates" +
+                    " JOIN gift_certificate_tag" +
+                    " ON gift_certificates.id = gift_certificate_tag.gift_certificate_id" +
+                    " JOIN tags" +
+                    " ON gift_certificate_tag.tag_id = tags.id";
 
     private static final String FIND_ALL =
             "SELECT gift_certificates.id, gift_certificates.name, gift_certificates.description," +
@@ -62,6 +48,7 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
         this.jdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("gift_certificates")
                 .usingGeneratedKeyColumns("id");
+        this.namedJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     }
 
     @Autowired
@@ -71,12 +58,63 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
 
     @Override
     public List<GiftCertificate> findAll() {
-        return jdbcTemplate.query(FIND_ALL, new GiftCertificateRowMapper(tagDao));
+        return jdbcTemplate.query(
+                FIND_ALL,
+                new GiftCertificateRowMapper(tagDao)
+        );
+    }
+
+    @Override
+    public List<GiftCertificate> findAll(String tag, String name, String description, String sort) {
+        StringBuilder sql = new StringBuilder(SELECT_CERTIFICATES_WITH_TAGS);
+        String whereClause = prepareWhereClause(tag, name, description);
+        sql.append(whereClause);
+        String orderClause = prepareOrderClause(sort);
+        sql.append(orderClause);
+        Map<String, Object> params = new HashMap<>();
+        params.put("tag", tag);
+        params.put("name", name);
+        params.put("description", description);
+        return namedJdbcTemplate.query(
+                sql.toString(),
+                params,
+                new GiftCertificateRowMapper(tagDao)
+        );
+    }
+
+    private String prepareWhereClause(String tag, String name, String description) {
+        StringJoiner whereClause = new StringJoiner(" AND ", " WHERE ", "").setEmptyValue("");
+        if (tag != null) {
+            String whereTagEquals = "tags.name = :tag";
+            whereClause.add(whereTagEquals);
+        }
+        if (name != null) {
+            String whereCertificateNameLike = "gift_certificates.name ILIKE '%' || :name || '%'";
+            whereClause.add(whereCertificateNameLike);
+        }
+        if (description != null) {
+            String whereCertificateDescriptionLike = "gift_certificates.description ILIKE '%' || :description  || '%'";
+            whereClause.add(whereCertificateDescriptionLike);
+        }
+        return whereClause.toString();
+    }
+
+    private String prepareOrderClause(String sort) {
+        String empty = " ";
+        if (sort == null) {
+            return empty;
+        }
+        String[] params = sort.split(",");
+        return String.format(" ORDER BY %s %s", params[0], params[1]);
     }
 
     @Override
     public Optional<GiftCertificate> findById(long id) {
-        return Optional.ofNullable(jdbcTemplate.queryForObject(FIND_BY_ID, new GiftCertificateRowMapper(tagDao), id));
+        GiftCertificate certificate = DataAccessUtils.singleResult(jdbcTemplate.query(
+                FIND_BY_ID,
+                new Object[]{id},
+                new GiftCertificateRowMapper(tagDao)));
+        return Optional.ofNullable(certificate);
     }
 
     @Override

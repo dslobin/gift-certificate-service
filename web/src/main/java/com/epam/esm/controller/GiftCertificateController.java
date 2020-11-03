@@ -1,19 +1,16 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.dto.GiftCertificateDto;
-import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.GiftCertificate;
-import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.GiftCertificateNotFoundException;
+import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.service.GiftCertificateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,6 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GiftCertificateController {
     private final GiftCertificateService giftCertificateService;
+    private final GiftCertificateMapper certificateMapper;
 
     /**
      * View gift certificates.
@@ -32,38 +30,30 @@ public class GiftCertificateController {
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
-            @RequestParam(required = false) Set<String> sort
+            @RequestParam(required = false) String sort
     ) {
-
-        List<GiftCertificateDto> certificates = giftCertificateService.findAll().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+        List<GiftCertificateDto> certificates;
+        if (areAllParamsEqualToNull(tag, name, description, sort)) {
+            certificates = giftCertificateService.findAll().stream()
+                    .map(certificateMapper::toDto)
+                    .collect(Collectors.toList());
+        } else {
+            certificates =giftCertificateService.findAll(tag, name, description, sort).stream()
+                    .map(certificateMapper::toDto)
+                    .collect(Collectors.toList());
+        }
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(certificates);
     }
 
-    private GiftCertificateDto convertToDto(GiftCertificate certificate) {
-        GiftCertificateDto dto = new GiftCertificateDto();
-        dto.setId(certificate.getId());
-        dto.setName(certificate.getName());
-        dto.setDescription(certificate.getDescription());
-        dto.setPrice(certificate.getPrice());
-        dto.setCreateDate(certificate.getCreateDate());
-        dto.setLastUpdateDate(certificate.getLastUpdateDate());
-        dto.setDurationInDays(certificate.getDuration().toDays());
-        dto.setTags(certificate.getTags().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toSet())
-        );
-        return dto;
-    }
-
-    private TagDto convertToDto(Tag tag) {
-        TagDto dto = new TagDto();
-        dto.setId(tag.getId());
-        dto.setName(tag.getName());
-        return dto;
+    private boolean areAllParamsEqualToNull(String... params) {
+        for (String parameter : params) {
+            if (parameter != null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -72,13 +62,13 @@ public class GiftCertificateController {
      * @return gift certificate with the specified id
      * @throws GiftCertificateNotFoundException if the certificate with the specified id doesn't exist
      */
-    @GetMapping("/${id}")
-    public ResponseEntity<GiftCertificate> getOneCertificate(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<GiftCertificateDto> getOneCertificate(@PathVariable Long id) {
         GiftCertificate certificate = giftCertificateService.findById(id)
                 .orElseThrow(() -> new GiftCertificateNotFoundException(id));
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(certificate);
+                .body(certificateMapper.toDto(certificate));
     }
 
     /**
@@ -87,12 +77,12 @@ public class GiftCertificateController {
      * @return empty response
      * @throws GiftCertificateNotFoundException if the specified gift certificate does not exist
      */
-    @DeleteMapping("/${id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCertificate(@PathVariable Long id) {
         GiftCertificate certificate = giftCertificateService.findById(id)
                 .orElseThrow(() -> new GiftCertificateNotFoundException(id));
         giftCertificateService.deleteById(certificate.getId());
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     /**
@@ -101,10 +91,11 @@ public class GiftCertificateController {
      * @return updated gift certificate
      */
     @PostMapping
-    public ResponseEntity<GiftCertificate> createCertificate(@RequestBody GiftCertificate certificate) {
-        giftCertificateService.create(certificate, new HashSet<>());
+    public ResponseEntity<GiftCertificateDto> createCertificate(@RequestBody GiftCertificateDto certificateDto) {
+        GiftCertificate certificate = certificateMapper.toModel(certificateDto);
+        GiftCertificate newCertificate = giftCertificateService.create(certificate);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(certificate);
+                .body(certificateMapper.toDto(newCertificate));
     }
 }
