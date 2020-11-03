@@ -25,10 +25,9 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Tag create(Tag tag) {
-        long tagId = tagDao.save(tag);
-        tag.setId(tagId);
-        return tag;
+    public Tag create(String tagName) {
+        long tagId = tagDao.save(tagName);
+        return new Tag(tagId, tagName);
     }
 
     @Override

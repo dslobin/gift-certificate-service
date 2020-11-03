@@ -15,7 +15,7 @@ public interface TagDao {
 
     Optional<Tag> findById(long id);
 
-    long save(Tag tag);
+    long save(String tagName);
 
     void deleteById(long id);
 

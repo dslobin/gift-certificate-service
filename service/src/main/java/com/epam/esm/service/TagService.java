@@ -10,7 +10,7 @@ public interface TagService {
 
     Optional<Tag> findById(long id);
 
-    Tag create(Tag tag);
+    Tag create(String tagName);
 
     void deleteById(long id);
 }
