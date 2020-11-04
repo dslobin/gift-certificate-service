@@ -35,7 +35,7 @@ class JdbcDaoTest {
         long tagId = 1;
         String tagName = "Photo_session";
         Tag tag = new Tag(tagId, tagName);
-        tagDao.save(tag);
+        tagDao.save(tag.getName());
 
         Tag tagFromDb = tagDao.findById(tagId).get();
         assertEquals(tagName, tagFromDb.getName());
@@ -49,7 +49,7 @@ class JdbcDaoTest {
                 new Tag(3L, "Motorists")
         ).collect(Collectors.toSet());
 
-        tags.forEach(tag -> tagDao.save(tag));
+        tags.forEach(tag -> tagDao.save(tag.getName()));
 
         Set<Tag> tagsFromDb = tagDao.findAll();
         int expectedTagsCount = 3;
@@ -71,7 +71,7 @@ class JdbcDaoTest {
         certificate.setTags(tags);
         certificateDao.save(certificate);
 
-        tags.forEach(tag -> tagDao.save(tag));
+        tags.forEach(tag -> tagDao.save(tag.getName()));
 
         long certificateId = 1;
         tags.forEach(tag -> certificateDao.saveCertificateTag(certificateId, tag.getId()));
