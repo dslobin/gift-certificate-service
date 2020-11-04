@@ -32,6 +32,7 @@ subprojects {
         implementation group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5'
         implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
         implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-jasper', version: '8.0.47'
+        implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.1.0.Final'
 
         providedCompile group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
 

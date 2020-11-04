@@ -10,6 +10,10 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Repository
@@ -140,10 +144,18 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
         parameters.put("name", certificate.getName());
         parameters.put("description", certificate.getDescription());
         parameters.put("price", certificate.getPrice());
-        parameters.put("create_date", certificate.getCreateDate());
-        parameters.put("last_update_date", certificate.getLastUpdateDate());
+        parameters.put("create_date", convertToLocalDateTime(certificate.getCreateDate()));
+        parameters.put("last_update_date", convertToLocalDateTime(certificate.getLastUpdateDate()));
         parameters.put("duration", certificate.getDuration().toDays());
         return parameters;
+    }
+
+    private LocalDateTime convertToLocalDateTime(ZonedDateTime zonedDateTime) {
+        if (zonedDateTime == null) {
+            return null;
+        }
+        OffsetDateTime offsetDateTime = zonedDateTime.withZoneSameInstant(ZoneId.systemDefault()).toOffsetDateTime();
+        return offsetDateTime.toLocalDateTime();
     }
 
     @Override

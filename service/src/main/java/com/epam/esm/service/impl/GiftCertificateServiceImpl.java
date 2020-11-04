@@ -30,7 +30,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         giftCertificate.getTags().forEach(tag -> {
             Optional<Tag> existingTag = tagDao.findByName(tag.getName());
             if (existingTag.isPresent()) {
-                tagIds.add(tag.getId());
+                long existingTagId = existingTag.get().getId();
+                tagIds.add(existingTagId);
+                tag.setId(existingTagId);
             } else {
                 long insertedTagId = tagDao.save(tag.getName());
                 tag.setId(insertedTagId);
