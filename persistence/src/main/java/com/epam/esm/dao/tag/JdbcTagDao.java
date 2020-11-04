@@ -2,6 +2,7 @@ package com.epam.esm.dao.tag;
 
 import com.epam.esm.entity.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
@@ -60,12 +61,22 @@ public class JdbcTagDao implements TagDao {
 
     @Override
     public Optional<Tag> findByName(String name) {
-        return Optional.ofNullable(jdbcTemplate.queryForObject(FIND_BY_NAME, new TagRowMapper(), name));
+        Tag tag = DataAccessUtils.singleResult(jdbcTemplate.query(
+                FIND_BY_NAME,
+                new Object[]{name},
+                new TagRowMapper())
+        );
+        return Optional.ofNullable(tag);
     }
 
     @Override
     public Optional<Tag> findById(long id) {
-        return Optional.ofNullable(jdbcTemplate.queryForObject(FIND_BY_ID, new TagRowMapper(), id));
+        Tag tag = DataAccessUtils.singleResult(jdbcTemplate.query(
+                FIND_BY_ID,
+                new Object[]{id},
+                new TagRowMapper())
+        );
+        return Optional.ofNullable(tag);
     }
 
     @Override

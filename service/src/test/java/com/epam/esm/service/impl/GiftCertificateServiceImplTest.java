@@ -80,7 +80,7 @@ class GiftCertificateServiceImplTest {
 
         given(certificateDao.save(any(GiftCertificate.class))).willReturn(certificate.getId());
 
-        GiftCertificate savedCertificate = certificateService.create(certificate, certificate.getTags());
+        GiftCertificate savedCertificate = certificateService.create(certificate);
 
         assertThat(savedCertificate).isNotNull();
     }

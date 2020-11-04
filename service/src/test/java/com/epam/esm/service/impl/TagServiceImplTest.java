@@ -33,9 +33,9 @@ class TagServiceImplTest {
     void shouldSaveTagSuccessfully() {
         Tag tag = new Tag(1L, "Quests");
 
-        given(tagDao.save(any(Tag.class))).willReturn(tag.getId());
+        given(tagDao.save(any(String.class))).willReturn(tag.getId());
 
-        Tag savedTag = tagService.create(tag);
+        Tag savedTag = tagService.create(tag.getName());
 
         assertThat(savedTag).isNotNull();
     }
