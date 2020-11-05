@@ -45,6 +45,14 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
     private static final String DELETE_BY_ID =
             "DELETE FROM gift_certificates WHERE id = ?";
 
+    private static final String DELETE_CERTIFICATE_TAG =
+            "DELETE FROM gift_certificate_tag WHERE tag_id = ? AND gift_certificate_id = ?";
+
+    private static final String UPDATE =
+            "UPDATE gift_certificates" +
+                    " SET name = ?, description = ?, price = ?, last_update_date = ?, duration = ?" +
+                    " WHERE id = ?";
+
     @Autowired
     @Override
     public void setDataSource(DataSource dataSource) {
@@ -132,10 +140,26 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
     }
 
     @Override
+    public void deleteCertificateTag(long certificateId, long tagId) {
+        jdbcTemplate.update(DELETE_CERTIFICATE_TAG, tagId, certificateId);
+    }
+
+    @Override
     public long save(GiftCertificate giftCertificate) {
         Map<String, Object> certificateParams = getCertificateParameters(giftCertificate);
         Number certificateId = this.jdbcInsert.executeAndReturnKey(certificateParams);
         return certificateId.longValue();
+    }
+
+    @Override
+    public void update(GiftCertificate giftCertificate) {
+        jdbcTemplate.update(UPDATE,
+                giftCertificate.getName(),
+                giftCertificate.getDescription(),
+                giftCertificate.getPrice(),
+                convertToLocalDateTime(giftCertificate.getLastUpdateDate()),
+                giftCertificate.getDuration().toDays(),
+                giftCertificate.getId());
     }
 
     private Map<String, Object> getCertificateParameters(GiftCertificate certificate) {

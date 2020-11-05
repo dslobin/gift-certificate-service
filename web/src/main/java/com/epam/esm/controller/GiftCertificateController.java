@@ -38,7 +38,7 @@ public class GiftCertificateController {
                     .map(certificateMapper::toDto)
                     .collect(Collectors.toList());
         } else {
-            certificates =giftCertificateService.findAll(tag, name, description, sort).stream()
+            certificates = giftCertificateService.findAll(tag, name, description, sort).stream()
                     .map(certificateMapper::toDto)
                     .collect(Collectors.toList());
         }
@@ -97,5 +97,24 @@ public class GiftCertificateController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(certificateMapper.toDto(newCertificate));
+    }
+
+    /**
+     * Updating a gift certificate.
+     *
+     * @return updated gift certificate
+     * @throws GiftCertificateNotFoundException if the specified gift certificate does not exist
+     */
+    @PutMapping
+    public ResponseEntity<GiftCertificateDto> updateCertificate(@RequestBody GiftCertificateDto certificateDto) {
+        boolean isCertificatePresent = giftCertificateService.findById(certificateDto.getId()).isPresent();
+        if (!isCertificatePresent) {
+            throw new GiftCertificateNotFoundException(certificateDto.getId());
+        }
+        GiftCertificate certificate = certificateMapper.toModel(certificateDto);
+        GiftCertificate updatedCertificate = giftCertificateService.update(certificate);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(certificateMapper.toDto(updatedCertificate));
     }
 }

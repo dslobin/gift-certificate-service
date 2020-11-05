@@ -58,17 +58,11 @@ class JdbcDaoTest {
 
     @Test
     void givenCertificateWithTags_whenSave_thenGetCorrectTagCount() {
-        GiftCertificate certificate = new GiftCertificate();
-        certificate.setName("Gift Certificate for business");
-        certificate.setDescription("If you’re in business, you know that gift certificate cards are a must.");
-        certificate.setPrice(BigDecimal.valueOf(11.99));
-        certificate.setCreateDate(ZonedDateTime.now());
-        certificate.setDuration(Duration.ofDays(7));
         Set<Tag> tags = Stream.of(
                 new Tag(1L, "Exclusive"),
                 new Tag(2L, "Business")
         ).collect(Collectors.toSet());
-        certificate.setTags(tags);
+        GiftCertificate certificate = createCertificate(tags);
         certificateDao.save(certificate);
 
         tags.forEach(tag -> tagDao.save(tag.getName()));
@@ -79,5 +73,16 @@ class JdbcDaoTest {
         GiftCertificate certificateFromDb = certificateDao.findById(certificateId).get();
         Set<Tag> tagsFromSavedCertificate = certificateFromDb.getTags();
         assertEquals(tags.size(), tagsFromSavedCertificate.size());
+    }
+
+    private GiftCertificate createCertificate(Set<Tag> certificateTags) {
+        GiftCertificate certificate = new GiftCertificate();
+        certificate.setName("Gift Certificate for business");
+        certificate.setDescription("If you’re in business, you know that gift certificate cards are a must.");
+        certificate.setPrice(BigDecimal.valueOf(11.99));
+        certificate.setCreateDate(ZonedDateTime.now());
+        certificate.setDuration(Duration.ofDays(7));
+        certificate.setTags(certificateTags);
+        return certificate;
     }
 }

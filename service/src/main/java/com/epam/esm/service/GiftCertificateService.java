@@ -10,6 +10,8 @@ public interface GiftCertificateService {
 
     GiftCertificate create(GiftCertificate giftCertificate);
 
+    GiftCertificate update(GiftCertificate giftCertificate);
+
     List<GiftCertificate> findAll();
 
     List<GiftCertificate> findAll(String tag, String name, String description, String sort);

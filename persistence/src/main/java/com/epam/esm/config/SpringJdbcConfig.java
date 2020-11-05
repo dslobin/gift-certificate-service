@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionManager;
 
 import javax.sql.DataSource;
 
@@ -31,5 +33,10 @@ public class SpringJdbcConfig {
         dataSource.setPassword(password);
         dataSource.setMaximumPoolSize(maxPoolSize);
         return dataSource;
+    }
+
+    @Bean
+    public TransactionManager txManager() {
+        return new DataSourceTransactionManager(postgresDataSource());
     }
 }

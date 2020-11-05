@@ -15,7 +15,11 @@ public interface GiftCertificateDao {
 
     long save(GiftCertificate giftCertificate);
 
+    void update(GiftCertificate giftCertificate);
+
     void saveCertificateTag(long certificateId, long tagId);
+
+    void deleteCertificateTag(long certificateId, long tagId);
 
     void deleteById(long id);
 

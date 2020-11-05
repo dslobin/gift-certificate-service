@@ -6,6 +6,7 @@ import com.epam.esm.service.TagService;
 import com.epam.esm.service.exception.NameAlreadyExistException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.Set;
@@ -16,16 +17,19 @@ public class TagServiceImpl implements TagService {
     private final TagDao tagDao;
 
     @Override
+    @Transactional(readOnly = true)
     public Set<Tag> findAll() {
         return tagDao.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Tag> findById(long id) {
         return tagDao.findById(id);
     }
 
     @Override
+    @Transactional
     public Tag create(String tagName) {
         Optional<Tag> tagFromDb = tagDao.findByName(tagName);
         if (tagFromDb.isPresent()) {
@@ -36,6 +40,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Transactional
     public void deleteById(long id) {
         tagDao.deleteById(id);
     }
