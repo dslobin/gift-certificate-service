@@ -2,6 +2,7 @@ package com.epam.esm.advice;
 
 import com.epam.esm.exception.GiftCertificateNotFoundException;
 import com.epam.esm.exception.TagNotFoundException;
+import com.epam.esm.service.exception.NameAlreadyExistException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -45,6 +46,18 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("errorCode", ErrorCodeProvider.of(HttpStatus.NOT_FOUND, ResourceCode.TAG));
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(NameAlreadyExistException.class)
+    public ResponseEntity<Object> handleExistedNameException(
+            NameAlreadyExistException e,
+            WebRequest request
+    ) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", e.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
     @Override

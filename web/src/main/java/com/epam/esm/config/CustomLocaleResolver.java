@@ -13,9 +13,10 @@ import java.util.Locale;
 @Configuration
 public class CustomLocaleResolver extends AcceptHeaderLocaleResolver {
 
-    List<Locale> LOCALES = Arrays.asList(
+    private List<Locale> LOCALES = Arrays.asList(
             new Locale("en"),
-            new Locale("ru"));
+            new Locale("ru")
+    );
 
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
