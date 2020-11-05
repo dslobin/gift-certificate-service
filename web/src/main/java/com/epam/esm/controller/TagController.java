@@ -5,6 +5,7 @@ import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.TagNotFoundException;
 import com.epam.esm.mapper.TagMapper;
 import com.epam.esm.service.TagService;
+import com.epam.esm.service.exception.NameAlreadyExistException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +38,21 @@ public class TagController {
     }
 
     /**
+     * Viewing a single tag.
+     *
+     * @return tag with the specified id
+     * @throws TagNotFoundException if the tag with the specified id doesn't exist
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<TagDto> getOneTag(@PathVariable Long id) {
+        Tag tag = tagService.findById(id)
+                .orElseThrow(() -> new TagNotFoundException(id));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(tagMapper.toDto(tag));
+    }
+
+    /**
      * Deleting a tag.
      *
      * @return empty response
@@ -54,6 +70,7 @@ public class TagController {
      * Adding a tag.
      *
      * @return updated tag
+     * @throws NameAlreadyExistException if tag with such name already saved in data storage
      */
     @PostMapping
     public ResponseEntity<TagDto> createTag(@Valid @RequestBody TagDto tagDto) {

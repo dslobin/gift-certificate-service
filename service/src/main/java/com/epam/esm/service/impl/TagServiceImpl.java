@@ -3,6 +3,7 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
+import com.epam.esm.service.exception.NameAlreadyExistException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,10 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public Tag create(String tagName) {
+        Optional<Tag> tagFromDb = tagDao.findByName(tagName);
+        if (tagFromDb.isPresent()) {
+            throw new NameAlreadyExistException(String.format("Tag with name %s already exists", tagName));
+        }
         long tagId = tagDao.save(tagName);
         return new Tag(tagId, tagName);
     }
