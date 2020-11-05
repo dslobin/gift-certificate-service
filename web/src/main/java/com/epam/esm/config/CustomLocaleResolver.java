@@ -28,10 +28,10 @@ public class CustomLocaleResolver extends AcceptHeaderLocaleResolver {
 
     @Bean
     public ResourceBundleMessageSource messageSource() {
-        ResourceBundleMessageSource rs = new ResourceBundleMessageSource();
-        rs.setBasename("messages");
-        rs.setDefaultEncoding("UTF-8");
-        rs.setUseCodeAsDefaultMessage(true);
-        return rs;
+        ResourceBundleMessageSource resourceBundle = new ResourceBundleMessageSource();
+        resourceBundle.setBasename("messages");
+        resourceBundle.setDefaultEncoding("UTF-8");
+        resourceBundle.setUseCodeAsDefaultMessage(true);
+        return resourceBundle;
     }
 }

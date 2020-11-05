@@ -22,7 +22,6 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final TagDao tagDao;
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<GiftCertificate> findById(long id) {
         return giftCertificateDao.findById(id);
     }
@@ -80,19 +79,16 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<GiftCertificate> findAll() {
         return giftCertificateDao.findAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<GiftCertificate> findAll(String tag, String name, String description, String sort) {
         return giftCertificateDao.findAll(tag, name, description, sort);
     }
 
     @Override
-    @Transactional
     public void deleteById(long id) {
         giftCertificateDao.deleteById(id);
     }

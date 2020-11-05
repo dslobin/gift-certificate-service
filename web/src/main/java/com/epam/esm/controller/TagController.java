@@ -5,7 +5,7 @@ import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.TagNotFoundException;
 import com.epam.esm.mapper.TagMapper;
 import com.epam.esm.service.TagService;
-import com.epam.esm.service.exception.NameAlreadyExistException;
+import com.epam.esm.exception.NameAlreadyExistException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,11 +69,15 @@ public class TagController {
     /**
      * Adding a tag.
      *
-     * @return updated tag
+     * @return new tag
      * @throws NameAlreadyExistException if tag with such name already saved in data storage
      */
     @PostMapping
     public ResponseEntity<TagDto> createTag(@Valid @RequestBody TagDto tagDto) {
+        boolean isTagNamePresent = tagService.findByName(tagDto.getName()).isPresent();
+        if (isTagNamePresent) {
+            throw new NameAlreadyExistException(tagDto.getName());
+        }
         Tag newTag = tagService.create(tagDto.getName());
         return ResponseEntity
                 .status(HttpStatus.CREATED)

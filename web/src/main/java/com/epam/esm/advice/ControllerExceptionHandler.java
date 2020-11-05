@@ -2,7 +2,7 @@ package com.epam.esm.advice;
 
 import com.epam.esm.exception.GiftCertificateNotFoundException;
 import com.epam.esm.exception.TagNotFoundException;
-import com.epam.esm.service.exception.NameAlreadyExistException;
+import com.epam.esm.exception.NameAlreadyExistException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request
     ) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
         body.put("message", e.getMessage());
         body.put("errorCode", ErrorCodeProvider.of(HttpStatus.NOT_FOUND, ResourceCode.GIFT_CERTIFICATE));
 
@@ -41,7 +39,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request
     ) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
         body.put("message", e.getMessage());
         body.put("errorCode", ErrorCodeProvider.of(HttpStatus.NOT_FOUND, ResourceCode.TAG));
 
@@ -54,7 +51,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request
     ) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
         body.put("message", e.getMessage());
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
@@ -68,7 +64,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request
     ) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
 
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
