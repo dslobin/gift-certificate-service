@@ -1,38 +1,36 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.dao.certificate.GiftCertificateDao;
-import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.GiftCertificateService;
-import org.junit.jupiter.api.BeforeEach;
+import com.epam.esm.service.config.ServiceContextConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
-import java.security.cert.Certificate;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
+@ContextConfiguration(classes = ServiceContextConfig.class)
 class GiftCertificateServiceImplTest {
-    private TagDao tagDao;
+    @Autowired
     private GiftCertificateDao certificateDao;
-    private GiftCertificateService certificateService;
 
-    @BeforeEach
-    void setUp() {
-        tagDao = mock(TagDao.class);
-        certificateDao = mock(GiftCertificateDao.class);
-        certificateService = new GiftCertificateServiceImpl(certificateDao, tagDao);
-    }
+    @Autowired
+    private GiftCertificateService certificateService;
 
     @Test
     void shouldReturnAllCertificates() {
@@ -107,6 +105,17 @@ class GiftCertificateServiceImplTest {
         Optional<GiftCertificate> expectedCertificate = certificateService.findById(certificateId);
 
         assertThat(expectedCertificate).isNotNull();
+    }
+
+    @Test
+    void shouldNotReturnCertificateById() {
+        long certificateId = 10L;
+
+        given(certificateDao.findById(certificateId)).willReturn(Optional.empty());
+
+        Optional<GiftCertificate> expectedCertificate = certificateService.findById(certificateId);
+
+        assertFalse(expectedCertificate.isPresent());
     }
 
     @Test

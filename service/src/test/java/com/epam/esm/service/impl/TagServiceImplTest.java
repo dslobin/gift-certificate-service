@@ -3,31 +3,34 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
-import org.junit.jupiter.api.BeforeEach;
+import com.epam.esm.service.config.ServiceContextConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
+@ContextConfiguration(classes = ServiceContextConfig.class)
 class TagServiceImplTest {
+    @Autowired
     private TagDao tagDao;
-    private TagService tagService;
 
-    @BeforeEach
-    void setUp() {
-        tagDao = mock(TagDao.class);
-        tagService = new TagServiceImpl(tagDao);
-    }
+    @Autowired
+    private TagService tagService;
 
     @Test
     void shouldSaveTagSuccessfully() {
@@ -42,16 +45,16 @@ class TagServiceImplTest {
 
     @Test
     void shouldReturnAllTags() {
-        Set<Tag> tags = new HashSet<>();
-        tags.add(new Tag(1L, "Fitness_and_sports"));
-        tags.add(new Tag(2L, "Beauty_salon_service"));
-        tags.add(new Tag(3L, "Travel"));
+        Set<Tag> actualTags = Stream.of(
+                new Tag(1L, "Fitness_and_sports"),
+                new Tag(2L, "Beauty_salon_service"),
+                new Tag(3L, "Travel")
+        ).collect(Collectors.toSet());
 
-        given(tagDao.findAll()).willReturn(tags);
+        doReturn(actualTags).when(tagDao).findAll();
 
         Set<Tag> expectedTags = tagService.findAll();
-
-        assertEquals(expectedTags, tags);
+        assertEquals(expectedTags, actualTags);
     }
 
     @Test
@@ -67,8 +70,18 @@ class TagServiceImplTest {
     }
 
     @Test
+    void shouldNotReturnTagById() {
+        long tagId = 100L;
+        doReturn(Optional.empty()).when(tagDao).findById(tagId);
+
+        Optional<Tag> expectedTag = tagService.findById(tagId);
+
+        assertFalse(expectedTag.isPresent());
+    }
+
+    @Test
     void shouldDeleteTag() {
-        long tagId = 1L;
+        long tagId = 1;
 
         tagService.deleteById(tagId);
 
