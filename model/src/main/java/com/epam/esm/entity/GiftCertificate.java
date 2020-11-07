@@ -13,7 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Data
 public class GiftCertificate {
-    private Long id;
+    private long id;
     private String name;
     private String description;
     private BigDecimal price;

@@ -35,7 +35,7 @@ public class GiftCertificateDto {
 
     @PositiveOrZero
     @Max(value = 1826)
-    private Long durationInDays;
+    private long durationInDays;
 
     private Set<TagDto> tags;
 }

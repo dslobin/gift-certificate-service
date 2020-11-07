@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Configuration
-public class CustomLocaleResolver extends AcceptHeaderLocaleResolver {
-
+public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
     private List<Locale> LOCALES = Arrays.asList(
             new Locale("en"),
             new Locale("ru")

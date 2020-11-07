@@ -52,6 +52,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     ) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("message", e.getMessage());
+        body.put("errorCode", ErrorCodeProvider.of(HttpStatus.BAD_REQUEST, ResourceCode.TAG));
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
