@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,7 +54,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         Set<Long> oldCertificateTagIds = tagDao.findAllByGiftCertificateId(certificateId).stream()
                 .map(Tag::getId)
                 .collect(Collectors.toSet());
-        Set<Long> newTagIds = new HashSet<>();
+        Set<Long> newCertificateTagIds = new HashSet<>();
         giftCertificate.getTags().forEach(tag -> {
             Optional<Tag> tagFromDb = tagDao.findByName(tag.getName());
             if (tagFromDb.isPresent()) {
@@ -67,11 +64,11 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
             } else {
                 long insertedTagId = tagDao.save(tag.getName());
                 tag.setId(insertedTagId);
-                newTagIds.add(insertedTagId);
+                newCertificateTagIds.add(insertedTagId);
             }
         });
 
-        newTagIds.forEach(tagId -> giftCertificateDao.saveCertificateTag(certificateId, tagId));
+        newCertificateTagIds.forEach(tagId -> giftCertificateDao.saveCertificateTag(certificateId, tagId));
 
         oldCertificateTagIds.forEach(tagId -> giftCertificateDao.deleteCertificateTag(certificateId, tagId));
 
@@ -87,8 +84,25 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GiftCertificate> findAll(String tag, String name, String description, String sort) {
-        return giftCertificateDao.findAll(tag, name, description, sort);
+    public List<GiftCertificate> findAll(
+            String tag,
+            String name,
+            String description,
+            String sortByName,
+            String sortByCreateDate
+    ) {
+        List<GiftCertificate> certificates;
+        if (areAllParamsEqualsToNull(tag, name, description, sortByName, sortByCreateDate)) {
+            certificates = giftCertificateDao.findAll();
+        } else {
+            certificates = giftCertificateDao.findAll(tag, name, description, sortByName, sortByCreateDate);
+        }
+        return certificates;
+    }
+
+    private boolean areAllParamsEqualsToNull(String... params) {
+        return Arrays.stream(params)
+                .allMatch(Objects::isNull);
     }
 
     @Override

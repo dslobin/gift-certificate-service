@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -30,30 +32,16 @@ public class GiftCertificateController {
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String description,
-            @RequestParam(required = false) String sort
+            @RequestParam(required = false) String sortByName,
+            @RequestParam(required = false) String sortByCreateDate
     ) {
-        List<GiftCertificateDto> certificates;
-        if (areAllParamsEqualToNull(tag, name, description, sort)) {
-            certificates = giftCertificateService.findAll().stream()
-                    .map(certificateMapper::toDto)
-                    .collect(Collectors.toList());
-        } else {
-            certificates = giftCertificateService.findAll(tag, name, description, sort).stream()
-                    .map(certificateMapper::toDto)
-                    .collect(Collectors.toList());
-        }
+        List<GiftCertificateDto> certificates = giftCertificateService.findAll(
+                tag, name, description, sortByName, sortByCreateDate).stream()
+                .map(certificateMapper::toDto)
+                .collect(Collectors.toList());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(certificates);
-    }
-
-    private boolean areAllParamsEqualToNull(String... params) {
-        for (String parameter : params) {
-            if (parameter != null) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -91,7 +79,7 @@ public class GiftCertificateController {
      * @return updated gift certificate
      */
     @PostMapping
-    public ResponseEntity<GiftCertificateDto> createCertificate(@RequestBody GiftCertificateDto certificateDto) {
+    public ResponseEntity<GiftCertificateDto> createCertificate(@Valid @RequestBody GiftCertificateDto certificateDto) {
         GiftCertificate certificate = certificateMapper.toModel(certificateDto);
         GiftCertificate newCertificate = giftCertificateService.create(certificate);
         return ResponseEntity
@@ -106,8 +94,9 @@ public class GiftCertificateController {
      * @throws GiftCertificateNotFoundException if the specified gift certificate does not exist
      */
     @PutMapping
-    public ResponseEntity<GiftCertificateDto> updateCertificate(@RequestBody GiftCertificateDto certificateDto) {
-        boolean isCertificatePresent = giftCertificateService.findById(certificateDto.getId()).isPresent();
+    public ResponseEntity<GiftCertificateDto> updateCertificate(@Valid @RequestBody GiftCertificateDto certificateDto) {
+        Optional<GiftCertificate> existedCertificate = giftCertificateService.findById(certificateDto.getId());
+        boolean isCertificatePresent = existedCertificate.isPresent();
         if (!isCertificatePresent) {
             throw new GiftCertificateNotFoundException(certificateDto.getId());
         }

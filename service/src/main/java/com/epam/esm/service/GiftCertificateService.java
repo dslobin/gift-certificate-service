@@ -14,7 +14,7 @@ public interface GiftCertificateService {
 
     List<GiftCertificate> findAll();
 
-    List<GiftCertificate> findAll(String tag, String name, String description, String sort);
+    List<GiftCertificate> findAll(String tag, String name, String description, String sortByName, String sortByCreateDate);
 
     void deleteById(long id);
 }

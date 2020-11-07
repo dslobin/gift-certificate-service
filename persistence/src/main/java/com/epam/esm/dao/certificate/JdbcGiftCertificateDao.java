@@ -1,13 +1,16 @@
 package com.epam.esm.dao.certificate;
 
+import com.epam.esm.dao.OrderDirection;
 import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.GiftCertificate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
@@ -17,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 @Repository
+@Slf4j
 public class JdbcGiftCertificateDao implements GiftCertificateDao {
     private JdbcTemplate jdbcTemplate;
     private SimpleJdbcInsert jdbcInsert;
@@ -53,6 +57,18 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
                     " SET name = ?, description = ?, price = ?, last_update_date = ?, duration = ?" +
                     " WHERE id = ?";
 
+    private static final String WHERE_TAG_EQUALS =
+            "tags.name = :tag";
+
+    private static final String WHERE_CERTIFICATE_NAME_LIKE =
+            "gift_certificates.name ILIKE '%' || :name || '%'";
+
+    private static final String WHERE_CERTIFICATE_DESCRIPTION_LIKE =
+            "gift_certificates.description ILIKE '%' || :description  || '%'";
+
+    private static final String ORDER_BY_CREATE_DATE_ASC =
+            "ORDER BY create_date ASC";
+
     @Autowired
     @Override
     public void setDataSource(DataSource dataSource) {
@@ -77,47 +93,76 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
     }
 
     @Override
-    public List<GiftCertificate> findAll(String tag, String name, String description, String sort) {
-        StringBuilder sql = new StringBuilder(SELECT_CERTIFICATES_WITH_TAGS);
+    public List<GiftCertificate> findAll(
+            String tag,
+            String name,
+            String description,
+            String sortByName,
+            String sortByCreateDate
+    ) {
         String whereClause = prepareWhereClause(tag, name, description);
-        sql.append(whereClause);
-        String orderClause = prepareOrderClause(sort);
-        sql.append(orderClause);
+        String orderClause = prepareOrderClause(sortByName, sortByCreateDate);
+        String sql = collectFinalStatement(orderClause, whereClause);
+        log.debug("Sql: {}", sql);
         Map<String, Object> params = new HashMap<>();
         params.put("tag", tag);
         params.put("name", name);
         params.put("description", description);
         return namedJdbcTemplate.query(
-                sql.toString(),
+                sql,
                 params,
                 new GiftCertificateRowMapper(tagDao)
         );
     }
 
+    private String collectFinalStatement(String orderBy, String where) {
+        StringBuilder findAllSqlStatement = new StringBuilder();
+        if (StringUtils.isEmpty(where)) {
+            findAllSqlStatement.append(FIND_ALL);
+        } else {
+            findAllSqlStatement.append(SELECT_CERTIFICATES_WITH_TAGS);
+            findAllSqlStatement.append(where);
+        }
+        findAllSqlStatement.append(orderBy);
+        return findAllSqlStatement.toString();
+    }
+
     private String prepareWhereClause(String tag, String name, String description) {
         StringJoiner whereClause = new StringJoiner(" AND ", " WHERE ", "").setEmptyValue("");
-        if (tag != null) {
-            String whereTagEquals = "tags.name = :tag";
-            whereClause.add(whereTagEquals);
+        if (!StringUtils.isEmpty(tag)) {
+            whereClause.add(WHERE_TAG_EQUALS);
         }
-        if (name != null) {
-            String whereCertificateNameLike = "gift_certificates.name ILIKE '%' || :name || '%'";
-            whereClause.add(whereCertificateNameLike);
+        if (!StringUtils.isEmpty(name)) {
+            whereClause.add(WHERE_CERTIFICATE_NAME_LIKE);
         }
-        if (description != null) {
-            String whereCertificateDescriptionLike = "gift_certificates.description ILIKE '%' || :description  || '%'";
-            whereClause.add(whereCertificateDescriptionLike);
+        if (!StringUtils.isEmpty(description)) {
+            whereClause.add(WHERE_CERTIFICATE_DESCRIPTION_LIKE);
         }
         return whereClause.toString();
     }
 
-    private String prepareOrderClause(String sort) {
-        String empty = " ";
-        if (sort == null) {
-            return empty;
+    private String prepareOrderClause(String sortByName, String sortByCreateDate) {
+        StringJoiner orderClause = new StringJoiner(", ", " ORDER BY ", "").setEmptyValue("");
+        if (!StringUtils.isEmpty(sortByName)) {
+            String orderByName = createSortingCondition(sortByName);
+            orderClause.add(orderByName);
         }
+        if (!StringUtils.isEmpty(sortByCreateDate)) {
+            String orderByCreateDate = createSortingCondition(sortByCreateDate);
+            orderClause.add(orderByCreateDate);
+        }
+        return orderClause.toString();
+    }
+
+    private String createSortingCondition(String sort) {
         String[] params = sort.split(",");
-        return String.format(" ORDER BY %s %s", params[0], params[1]);
+        log.debug("Sort parameters: " + Arrays.toString(params));
+        if (params.length == 1) {
+            return GiftCertificateOrderField.getOrderField(params[0]);
+        }
+        String field = GiftCertificateOrderField.getOrderField(params[0]);
+        String direction = OrderDirection.getOrderDirection(params[1]);
+        return String.format("%s %s", field, direction);
     }
 
     @Override
@@ -153,11 +198,14 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
 
     @Override
     public void update(GiftCertificate giftCertificate) {
+        ZonedDateTime lastUpdateDate = giftCertificate.getLastUpdateDate() == null
+                ? ZonedDateTime.now()
+                : giftCertificate.getLastUpdateDate();
         jdbcTemplate.update(UPDATE,
                 giftCertificate.getName(),
                 giftCertificate.getDescription(),
                 giftCertificate.getPrice(),
-                convertToLocalDateTime(giftCertificate.getLastUpdateDate()),
+                convertToLocalDateTime(lastUpdateDate),
                 giftCertificate.getDuration().toDays(),
                 giftCertificate.getId());
     }

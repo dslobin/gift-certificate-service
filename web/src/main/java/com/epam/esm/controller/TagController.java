@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -74,7 +75,8 @@ public class TagController {
      */
     @PostMapping
     public ResponseEntity<TagDto> createTag(@Valid @RequestBody TagDto tagDto) {
-        boolean isTagNamePresent = tagService.findByName(tagDto.getName()).isPresent();
+        Optional<Tag> existedTag = tagService.findByName(tagDto.getName());
+        boolean isTagNamePresent = existedTag.isPresent();
         if (isTagNamePresent) {
             throw new NameAlreadyExistException(tagDto.getName());
         }
