@@ -217,7 +217,7 @@ public class JdbcGiftCertificateDao implements GiftCertificateDao {
         parameters.put("description", certificate.getDescription());
         parameters.put("price", certificate.getPrice());
         parameters.put("create_date", convertToLocalDateTime(certificate.getCreateDate()));
-        parameters.put("last_update_date", convertToLocalDateTime(certificate.getLastUpdateDate()));
+        parameters.put("last_update_date", null);
         parameters.put("duration", certificate.getDuration().toDays());
         return parameters;
     }
