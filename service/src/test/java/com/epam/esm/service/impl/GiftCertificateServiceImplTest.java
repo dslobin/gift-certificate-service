@@ -4,7 +4,7 @@ import com.epam.esm.dao.certificate.GiftCertificateDao;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.GiftCertificateService;
-import com.epam.esm.service.config.ServiceContextConfig;
+import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +24,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-@ContextConfiguration(classes = ServiceContextConfig.class)
+@ContextConfiguration(classes = ServiceContextTest.class)
 class GiftCertificateServiceImplTest {
     @Autowired
     private GiftCertificateDao certificateDao;

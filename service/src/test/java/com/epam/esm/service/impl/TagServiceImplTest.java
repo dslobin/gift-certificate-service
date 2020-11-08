@@ -3,7 +3,7 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.tag.TagDao;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
-import com.epam.esm.service.config.ServiceContextConfig;
+import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +24,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-@ContextConfiguration(classes = ServiceContextConfig.class)
+@ContextConfiguration(classes = ServiceContextTest.class)
 class TagServiceImplTest {
     @Autowired
     private TagDao tagDao;
