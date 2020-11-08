@@ -14,8 +14,8 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import javax.sql.DataSource;
 
 @Configuration
-@PropertySource("classpath:database-test.properties")
-public class JdbcContextConfiguration {
+@PropertySource("classpath:test-database.properties")
+public class JdbcContextTest {
     @Value("${datasource.scriptEncoding}")
     private String scriptEncoding;
     @Value("${datasource.name}")
