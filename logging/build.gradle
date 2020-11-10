@@ -1,3 +1,7 @@
-dependencies {
-    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
 }

@@ -18,6 +18,4 @@ public interface TagDao {
     long save(String tagName);
 
     void deleteById(long id);
-
-    void setDataSource(DataSource dataSource);
 }

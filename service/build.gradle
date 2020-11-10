@@ -3,3 +3,11 @@ dependencies {
     implementation project(':persistence')
     implementation project(':logging')
 }
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
