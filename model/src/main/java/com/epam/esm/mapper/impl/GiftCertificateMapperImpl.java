@@ -20,6 +20,7 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
             return null;
         }
         GiftCertificateDto dto = new GiftCertificateDto();
+
         dto.setId(certificate.getId());
         dto.setName(certificate.getName());
         dto.setDescription(certificate.getDescription());
@@ -31,13 +32,16 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
                 .map(this::tagToTagDto)
                 .collect(Collectors.toSet());
         dto.setTags(tags);
+
         return dto;
     }
 
     private TagDto tagToTagDto(Tag tag) {
         TagDto dto = new TagDto();
+
         dto.setId(tag.getId());
         dto.setName(tag.getName());
+
         return dto;
     }
 
@@ -47,6 +51,7 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
             return null;
         }
         GiftCertificate certificate = new GiftCertificate();
+
         certificate.setId(dto.getId());
         certificate.setName(dto.getName());
         certificate.setDescription(dto.getDescription());
@@ -58,13 +63,16 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
                 .map(this::tagDtoToTag)
                 .collect(Collectors.toSet());
         certificate.setTags(tags);
+
         return certificate;
     }
 
     private Tag tagDtoToTag(TagDto dto) {
         Tag tag = new Tag();
+
         tag.setId(dto.getId());
         tag.setName(dto.getName());
+
         return tag;
     }
 }

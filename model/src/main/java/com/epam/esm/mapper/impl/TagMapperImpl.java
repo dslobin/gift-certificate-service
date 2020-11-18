@@ -13,8 +13,10 @@ public class TagMapperImpl implements TagMapper {
             return null;
         }
         Tag tag = new Tag();
+
         tag.setId(tagDto.getId());
         tag.setName(tagDto.getName());
+
         return tag;
     }
 
@@ -24,8 +26,10 @@ public class TagMapperImpl implements TagMapper {
             return null;
         }
         TagDto tagDto = new TagDto();
+
         tagDto.setId(tag.getId());
         tagDto.setName(tag.getName());
+
         return tagDto;
     }
 }
