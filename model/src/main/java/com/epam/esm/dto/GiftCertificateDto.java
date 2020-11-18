@@ -20,7 +20,7 @@ public class GiftCertificateDto {
     @Size(min = 1, max = 512)
     private String name;
 
-    @Size(min = 1, max = 1024)
+    @Size(min = 1, max = 2048)
     private String description;
 
     @Min(value = 1)
