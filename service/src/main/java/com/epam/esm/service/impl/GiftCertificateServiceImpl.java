@@ -1,22 +1,64 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.certificate.GiftCertificateDao;
-import com.epam.esm.dao.tag.TagDao;
+import com.epam.esm.dao.GiftCertificateDao;
+import com.epam.esm.dao.TagDao;
+import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.GiftCertificateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final GiftCertificateDao giftCertificateDao;
     private final TagDao tagDao;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GiftCertificate> findAll(int page, int size) {
+        return giftCertificateDao.findAll(page, size);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GiftCertificate> findAll(
+            int page,
+            int size,
+            CertificateSearchCriteria searchCriteria
+    ) {
+        List<GiftCertificate> certificates;
+        if (areAllParamsEqualsToNull(searchCriteria)) {
+            certificates = giftCertificateDao.findAll(page, size);
+        } else {
+            certificates = giftCertificateDao.findAll(searchCriteria);
+        }
+        return certificates;
+    }
+
+    private boolean areAllParamsEqualsToNull(CertificateSearchCriteria criteria) {
+        if (!StringUtils.isEmpty(criteria.getName())) {
+            return false;
+        }
+        if (!StringUtils.isEmpty(criteria.getDescription())) {
+            return false;
+        }
+        if (!StringUtils.isEmpty(criteria.getSortByName())) {
+            return false;
+        }
+        if (!StringUtils.isEmpty(criteria.getSortByCreateDate())) {
+            return false;
+        }
+        if (!criteria.getTags().isEmpty()) {
+            return false;
+        }
+        return true;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -27,22 +69,9 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     @Transactional
     public GiftCertificate create(GiftCertificate giftCertificate) {
-        Set<Long> tagIds = new HashSet<>();
-        giftCertificate.getTags().forEach(tag -> {
-            Optional<Tag> tagFromDb = tagDao.findByName(tag.getName());
-            if (tagFromDb.isPresent()) {
-                long existedTagId = tagFromDb.get().getId();
-                tagIds.add(existedTagId);
-                tag.setId(existedTagId);
-            } else {
-                long insertedTagId = tagDao.save(tag.getName());
-                tag.setId(insertedTagId);
-                tagIds.add(insertedTagId);
-            }
-        });
+        Set<Tag> certificateTags = handleGiftCertificateTags(giftCertificate.getTags());
+        giftCertificate.setTags(certificateTags);
         long certificateId = giftCertificateDao.save(giftCertificate);
-        tagIds.forEach(tagId -> giftCertificateDao.saveCertificateTag(certificateId, tagId));
-
         giftCertificate.setId(certificateId);
         return giftCertificate;
     }
@@ -50,59 +79,23 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Override
     @Transactional
     public GiftCertificate update(GiftCertificate giftCertificate) {
-        long certificateId = giftCertificate.getId();
-        Set<Long> oldCertificateTagIds = tagDao.findAllByGiftCertificateId(certificateId).stream()
-                .map(Tag::getId)
-                .collect(Collectors.toSet());
-        Set<Long> newCertificateTagIds = new HashSet<>();
-        giftCertificate.getTags().forEach(tag -> {
-            Optional<Tag> tagFromDb = tagDao.findByName(tag.getName());
-            if (tagFromDb.isPresent()) {
-                long existedTagId = tagFromDb.get().getId();
-                oldCertificateTagIds.removeIf(tagId -> tagId == existedTagId);
-                tag.setId(existedTagId);
-            } else {
-                long insertedTagId = tagDao.save(tag.getName());
-                tag.setId(insertedTagId);
-                newCertificateTagIds.add(insertedTagId);
-            }
-        });
-
-        newCertificateTagIds.forEach(tagId -> giftCertificateDao.saveCertificateTag(certificateId, tagId));
-
-        oldCertificateTagIds.forEach(tagId -> giftCertificateDao.deleteCertificateTag(certificateId, tagId));
-
+        Set<Tag> certificateTags = handleGiftCertificateTags(giftCertificate.getTags());
+        giftCertificate.setTags(certificateTags);
         giftCertificateDao.update(giftCertificate);
         return giftCertificate;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<GiftCertificate> findAll() {
-        return giftCertificateDao.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<GiftCertificate> findAll(
-            String tag,
-            String name,
-            String description,
-            String sortByName,
-            String sortByCreateDate
-    ) {
-        List<GiftCertificate> certificates;
-        if (areAllParamsEqualsToNull(tag, name, description, sortByName, sortByCreateDate)) {
-            certificates = giftCertificateDao.findAll();
-        } else {
-            certificates = giftCertificateDao.findAll(tag, name, description, sortByName, sortByCreateDate);
-        }
-        return certificates;
-    }
-
-    private boolean areAllParamsEqualsToNull(String... params) {
-        return Arrays.stream(params)
-                .allMatch(Objects::isNull);
+    private Set<Tag> handleGiftCertificateTags(Set<Tag> tags) {
+        Set<Tag> giftCertificateTags = new HashSet<>();
+        tags.forEach(tag -> {
+            Optional<Tag> existedTag = tagDao.findByName(tag.getName());
+            if (existedTag.isPresent()) {
+                giftCertificateTags.add(existedTag.get());
+            } else {
+                giftCertificateTags.add(tag);
+            }
+        });
+        return giftCertificateTags;
     }
 
     @Override

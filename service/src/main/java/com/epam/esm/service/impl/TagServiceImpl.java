@@ -1,6 +1,6 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.tag.TagDao;
+import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.service.TagService;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +17,8 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<Tag> findAll() {
-        return tagDao.findAll();
+    public Set<Tag> findAll(int page, int size) {
+        return tagDao.findAll(page, size);
     }
 
     @Override
@@ -35,9 +35,10 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional
-    public Tag create(String tagName) {
-        long tagId = tagDao.save(tagName);
-        return new Tag(tagId, tagName);
+    public Tag create(Tag tag) {
+        long tagId = tagDao.save(tag);
+        tag.setId(tagId);
+        return tag;
     }
 
     @Override

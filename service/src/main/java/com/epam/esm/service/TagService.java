@@ -6,13 +6,13 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface TagService {
-    Set<Tag> findAll();
+    Set<Tag> findAll(int page, int size);
 
     Optional<Tag> findById(long id);
 
     Optional<Tag> findByName(String name);
 
-    Tag create(String tagName);
+    Tag create(Tag tag);
 
     void deleteById(long id);
 }
