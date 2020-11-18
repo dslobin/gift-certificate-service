@@ -1,5 +1,6 @@
 package com.epam.esm.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Configuration
+@Slf4j
 public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
     private List<Locale> LOCALES = Arrays.asList(
             new Locale("en"),
@@ -20,6 +22,8 @@ public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
         String headerLang = request.getHeader("Accept-Language");
+        log.debug("Header lang: {}", headerLang);
+        log.debug("Default locale: {}", Locale.getDefault());
         return headerLang == null || headerLang.isEmpty()
                 ? Locale.getDefault()
                 : Locale.lookup(Locale.LanguageRange.parse(headerLang), LOCALES);
