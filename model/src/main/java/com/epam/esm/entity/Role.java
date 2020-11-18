@@ -8,13 +8,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "tags")
+@Table(name = "roles")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@EqualsAndHashCode(exclude = "certificates")
-@ToString(exclude = "certificates")
-public class Tag implements Serializable {
+@EqualsAndHashCode(exclude = "users")
+@ToString(exclude = "users")
+public class Role implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, insertable = false, updatable = false)
@@ -23,6 +23,6 @@ public class Tag implements Serializable {
     @Column(name = "name", unique = true, nullable = false, length = 128)
     private String name;
 
-    @ManyToMany(mappedBy = "tags", cascade = CascadeType.ALL)
-    private Set<GiftCertificate> certificates = new HashSet<>();
+    @ManyToMany(mappedBy = "roles")
+    private Set<User> users = new HashSet<>();
 }
