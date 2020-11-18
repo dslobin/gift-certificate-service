@@ -3,7 +3,9 @@ package com.epam.esm.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
@@ -13,7 +15,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class GiftCertificateDto {
+@EqualsAndHashCode(callSuper = false)
+public class GiftCertificateDto extends RepresentationModel<GiftCertificateDto> {
     @PositiveOrZero
     private long id;
 

@@ -24,6 +24,7 @@ subprojects {
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.3.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.3.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '2.3.5.RELEASE'
+        implementation group: 'org.springframework.boot', name: 'spring-boot-starter-hateoas', version: '2.3.4.RELEASE'
         implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.18'
 
         compileOnly 'org.projectlombok:lombok:1.18.12'

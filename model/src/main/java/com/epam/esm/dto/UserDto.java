@@ -2,7 +2,9 @@ package com.epam.esm.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.PositiveOrZero;
@@ -13,7 +15,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class UserDto {
+@EqualsAndHashCode(callSuper = false)
+public class UserDto extends RepresentationModel<UserDto> {
     @PositiveOrZero
     private long id;
 
