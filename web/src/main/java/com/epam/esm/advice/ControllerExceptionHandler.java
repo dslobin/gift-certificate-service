@@ -1,24 +1,25 @@
 package com.epam.esm.advice;
 
-import com.epam.esm.exception.GiftCertificateNotFoundException;
-import com.epam.esm.exception.TagNotFoundException;
-import com.epam.esm.exception.NameAlreadyExistException;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
+import com.epam.esm.exception.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.LinkedHashMap;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Path;
+import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(GiftCertificateNotFoundException.class)
@@ -26,11 +27,16 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             GiftCertificateNotFoundException e,
             WebRequest request
     ) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("message", e.getMessage());
-        body.put("errorCode", ErrorCodeProvider.of(HttpStatus.NOT_FOUND, ResourceCode.GIFT_CERTIFICATE));
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.GIFT_CERTIFICATE))
+                .path(request.getDescription(false))
+                .build();
 
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(TagNotFoundException.class)
@@ -38,11 +44,34 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             TagNotFoundException e,
             WebRequest request
     ) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("message", e.getMessage());
-        body.put("errorCode", ErrorCodeProvider.of(HttpStatus.NOT_FOUND, ResourceCode.TAG));
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.TAG))
+                .path(request.getDescription(false))
+                .build();
 
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Object> handleUserNotFoundException(
+            UserNotFoundException e,
+            WebRequest request
+    ) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.USER_ACCOUNT))
+                .path(request.getDescription(false))
+                .build();
+        ;
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(NameAlreadyExistException.class)
@@ -50,11 +79,33 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             NameAlreadyExistException e,
             WebRequest request
     ) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("message", e.getMessage());
-        body.put("errorCode", ErrorCodeProvider.of(HttpStatus.BAD_REQUEST, ResourceCode.TAG));
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.TAG))
+                .path(request.getDescription(false))
+                .build();
 
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<Object> handleOrderNotFoundException(
+            OrderNotFoundException e,
+            WebRequest request
+    ) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.ORDER))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @Override
@@ -64,15 +115,56 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatus status,
             WebRequest request
     ) {
-        Map<String, Object> body = new LinkedHashMap<>();
-
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .map(FieldError::getDefaultMessage)
                 .collect(Collectors.toList());
 
-        body.put("errors", errors);
-        return new ResponseEntity<>(body, headers, status);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(errors)
+                .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.NOT_PROVIDED))
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(errorResponse, headers, status);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleConstraintViolationException(
+            ConstraintViolationException e,
+            WebRequest request
+    ) {
+        Set<String> messages = new HashSet<>();
+
+        e.getConstraintViolations().forEach(violation -> {
+            Path propertyPath = violation.getPropertyPath();
+            String message = violation.getMessage();
+            messages.add(propertyPath + ": " + message);
+        });
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(messages)
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.NOT_PROVIDED))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * API error code based on HTTP status and resource code
+     *
+     * @see HttpStatus
+     * @see ResourceCode
+     */
+    private int getErrorCode(HttpStatus status, ResourceCode resourceCode) {
+        String errorCode = String.valueOf(status.value()) + resourceCode.value();
+        return Integer.parseInt(errorCode);
     }
 }
