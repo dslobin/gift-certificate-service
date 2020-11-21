@@ -3,31 +3,43 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.CertificateSearchCriteria;
+import com.epam.esm.dto.GiftCertificateDto;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.service.GiftCertificateService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final GiftCertificateDao giftCertificateDao;
     private final TagDao tagDao;
+    private final GiftCertificateMapper giftCertificateMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public List<GiftCertificate> findAll(int page, int size) {
-        return giftCertificateDao.findAll(page, size);
+    public List<GiftCertificateDto> findAll(int page, int size) {
+        return giftCertificateDao.findAll(page, size).stream()
+                .map(giftCertificateMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<GiftCertificate> findAll(
+    public List<GiftCertificateDto> findAll(
             int page,
             int size,
             CertificateSearchCriteria searchCriteria
@@ -36,66 +48,66 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         if (areAllParamsEqualsToNull(searchCriteria)) {
             certificates = giftCertificateDao.findAll(page, size);
         } else {
-            certificates = giftCertificateDao.findAll(searchCriteria);
+            certificates = giftCertificateDao.findAll(searchCriteria, page, size);
         }
-        return certificates;
+        return certificates.stream()
+                .map(giftCertificateMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     private boolean areAllParamsEqualsToNull(CertificateSearchCriteria criteria) {
-        if (!StringUtils.isEmpty(criteria.getName())) {
-            return false;
-        }
-        if (!StringUtils.isEmpty(criteria.getDescription())) {
-            return false;
-        }
-        if (!StringUtils.isEmpty(criteria.getSortByName())) {
-            return false;
-        }
-        if (!StringUtils.isEmpty(criteria.getSortByCreateDate())) {
-            return false;
-        }
-        if (!criteria.getTags().isEmpty()) {
-            return false;
-        }
-        return true;
+        return StringUtils.isEmpty(criteria.getName()) &&
+                StringUtils.isEmpty(criteria.getDescription()) &&
+                StringUtils.isEmpty(criteria.getSortByName()) &&
+                StringUtils.isEmpty(criteria.getSortByCreateDate()) &&
+                criteria.getTags().isEmpty();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<GiftCertificate> findById(long id) {
-        return giftCertificateDao.findById(id);
+    public Optional<GiftCertificateDto> findById(long id) {
+        GiftCertificate byId = giftCertificateDao.findById(id).orElse(null);
+        return Optional.ofNullable(giftCertificateMapper.toDto(byId));
     }
 
     @Override
     @Transactional
-    public GiftCertificate create(GiftCertificate giftCertificate) {
-        Set<Tag> certificateTags = handleGiftCertificateTags(giftCertificate.getTags());
-        giftCertificate.setTags(certificateTags);
+    public GiftCertificateDto create(GiftCertificateDto certificateDto) {
+        log.debug("Get certificate dto to create {}", certificateDto);
+        GiftCertificate giftCertificate = giftCertificateMapper.toModel(certificateDto);
+        Set<Tag> tags = fillCertificateTags(giftCertificate);
+        giftCertificate.setTags(tags);
+        giftCertificate.setCreateDate(ZonedDateTime.now());
+        log.debug("Create certificate {}", giftCertificate);
         long certificateId = giftCertificateDao.save(giftCertificate);
         giftCertificate.setId(certificateId);
-        return giftCertificate;
+        return giftCertificateMapper.toDto(giftCertificate);
     }
 
     @Override
     @Transactional
-    public GiftCertificate update(GiftCertificate giftCertificate) {
-        Set<Tag> certificateTags = handleGiftCertificateTags(giftCertificate.getTags());
-        giftCertificate.setTags(certificateTags);
+    public GiftCertificateDto update(GiftCertificateDto certificateDto) {
+        GiftCertificate giftCertificate = giftCertificateMapper.toModel(certificateDto);
+        Set<Tag> tags = fillCertificateTags(giftCertificate);
+        giftCertificate.setTags(tags);
+        giftCertificate.setLastUpdateDate(ZonedDateTime.now());
+        log.debug("Update certificate {}", giftCertificate);
         giftCertificateDao.update(giftCertificate);
-        return giftCertificate;
+        return giftCertificateMapper.toDto(giftCertificate);
     }
 
-    private Set<Tag> handleGiftCertificateTags(Set<Tag> tags) {
-        Set<Tag> giftCertificateTags = new HashSet<>();
-        tags.forEach(tag -> {
+    private Set<Tag> fillCertificateTags(GiftCertificate certificate) {
+        Set<Tag> tags = new HashSet<>();
+        certificate.getTags().forEach(tag -> {
             Optional<Tag> existedTag = tagDao.findByName(tag.getName());
             if (existedTag.isPresent()) {
-                giftCertificateTags.add(existedTag.get());
+                tags.add(existedTag.get());
             } else {
-                giftCertificateTags.add(tag);
+                tags.add(tag);
             }
         });
-        return giftCertificateTags;
+        log.debug("Certificate tags {}", tags);
+        return tags;
     }
 
     @Override

@@ -1,12 +1,17 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.dao.CartDao;
 import com.epam.esm.dao.OrderDao;
+import com.epam.esm.dao.UserDao;
+import com.epam.esm.dto.OrderDto;
 import com.epam.esm.entity.*;
-import com.epam.esm.service.CartService;
+import com.epam.esm.exception.EmptyCartException;
+import com.epam.esm.exception.UserNotFoundException;
+import com.epam.esm.mapper.OrderMapper;
 import com.epam.esm.service.OrderService;
-import com.epam.esm.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -17,37 +22,48 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderDao orderDao;
-    private final UserService userService;
-    private final CartService cartService;
+    private final OrderMapper orderMapper;
+    private final UserDao userDao;
+    private final CartDao cartDao;
 
     @Override
-    public List<Order> findUserOrders(String userEmail) {
-        return orderDao.findByUserEmail(userEmail);
+    @Transactional(readOnly = true)
+    public List<OrderDto> findUserOrders(
+            int page,
+            int size,
+            String userEmail
+    ) {
+        return orderDao.findByUserEmail(page, size, userEmail).stream()
+                .map(orderMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Order> findUserOrder(String userEmail, long orderId) {
-        return orderDao.findByIdAndUserEmail(orderId, userEmail);
+    @Transactional(readOnly = true)
+    public Optional<OrderDto> findUserOrder(String userEmail, long orderId) {
+        Order userOrder = orderDao.findByIdAndUserEmail(orderId, userEmail)
+                .orElse(null);
+        return Optional.ofNullable(orderMapper.toDto(userOrder));
     }
 
-    // TODO: заменить IllegalStateException и IllegalArgumentException на свой exception
     @Override
-    public Order createUserOrder(String userEmail) {
-        User user = userService.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException(userEmail));
+    @Transactional
+    public OrderDto createUserOrder(String userEmail) {
+        User user = userDao.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException(userEmail));
 
-        Cart cart = cartService.getCartOrCreate(user.getEmail());
+        Cart cart = cartDao.findByUserEmail(user.getEmail());
         if (cart.isEmpty()) {
-            throw new IllegalStateException();
+            throw new EmptyCartException();
         }
 
         Order order = createNewOrder(user, cart);
 
         fillOrderItems(cart, order);
         orderDao.save(order);
-        cartService.clearCart(userEmail);
 
-        return order;
+        clearCart(cart);
+        return orderMapper.toDto(order);
     }
 
     private Order createNewOrder(User user, Cart cart) {
@@ -75,5 +91,10 @@ public class OrderServiceImpl implements OrderService {
         orderedProduct.setQuantity(item.getQuantity());
 
         return orderedProduct;
+    }
+
+    private void clearCart(Cart cart) {
+        cart.clear();
+        cartDao.save(cart);
     }
 }
