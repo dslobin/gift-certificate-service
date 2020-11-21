@@ -74,23 +74,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(NameAlreadyExistException.class)
-    public ResponseEntity<Object> handleExistedNameException(
-            NameAlreadyExistException e,
-            WebRequest request
-    ) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(ZonedDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(e.getMessage())
-                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.TAG))
-                .path(request.getDescription(false))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler(OrderNotFoundException.class)
     public ResponseEntity<Object> handleOrderNotFoundException(
             OrderNotFoundException e,
@@ -108,28 +91,21 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex,
-            HttpHeaders headers,
-            HttpStatus status,
+    @ExceptionHandler(NameAlreadyExistException.class)
+    public ResponseEntity<Object> handleExistedNameException(
+            NameAlreadyExistException e,
             WebRequest request
     ) {
-        List<String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.toList());
-
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(ZonedDateTime.now())
-                .status(status.value())
-                .error(status.getReasonPhrase())
-                .message(errors)
-                .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.NOT_PROVIDED))
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.TAG))
                 .path(request.getDescription(false))
                 .build();
-        return new ResponseEntity<>(errorResponse, headers, status);
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -155,6 +131,48 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EmptyCartException.class)
+    public ResponseEntity<Object> handleEmptyCartException(
+            EmptyCartException e,
+            WebRequest request
+    ) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.CART))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatus status,
+            WebRequest request
+    ) {
+        List<String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.toList());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(errors)
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.NOT_PROVIDED))
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(errorResponse, headers, status);
     }
 
     /**
