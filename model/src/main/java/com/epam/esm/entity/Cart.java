@@ -1,22 +1,22 @@
 package com.epam.esm.entity;
 
-import lombok.*;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "carts")
 @Data
-@EqualsAndHashCode(exclude = "itemsCost")
-@ToString(exclude = "itemsCost")
+@Slf4j
 public class Cart implements Serializable {
     @Id
     @Column(name = "id", unique = true, nullable = false)
@@ -24,14 +24,19 @@ public class Cart implements Serializable {
     @GenericGenerator(name = "gen", strategy = "foreign", parameters = @Parameter(name = "property", value = "user"))
     private long id;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "cart", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(value = FetchMode.SUBSELECT)
-    private List<CartItem> items = new ArrayList<>();
+    private Set<CartItem> items = new HashSet<>(0);
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToOne
+    @PrimaryKeyJoinColumn
     private User user;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @Transient
     private BigDecimal itemsCost;
 
@@ -41,12 +46,12 @@ public class Cart implements Serializable {
 
     public Cart(User user) {
         this.user = user;
-        itemsCost = calculateItemsCost();
+        this.itemsCost = calculateItemsCost();
     }
 
     public void clear() {
-        itemsCost = BigDecimal.ZERO;
-        items.clear();
+        this.itemsCost = BigDecimal.ZERO;
+        this.items.clear();
     }
 
     public boolean isEmpty() {
@@ -58,10 +63,11 @@ public class Cart implements Serializable {
     }
 
     public BigDecimal getItemsCost() {
+        this.itemsCost = calculateItemsCost();
         return itemsCost;
     }
 
-    public void setItems(List<CartItem> cartItems) {
+    public void setItems(Set<CartItem> cartItems) {
         this.items = cartItems;
         itemsCost = calculateItemsCost();
     }
@@ -74,15 +80,20 @@ public class Cart implements Serializable {
         if (newQuantity > 0) {
             CartItem existedItem = findItemById(certificate.getId());
             if (existedItem == null) {
+                log.debug("The certificate(id = {}) has been added to the cart", certificate.getId());
                 items.add(new CartItem(this, certificate, newQuantity));
             } else {
+                log.debug("The number of certificates(id = {}) has been renewed. New quantity: {}", certificate.getId(), newQuantity);
                 existedItem.setQuantity(newQuantity);
             }
         } else {
+            log.debug("The certificate(id = {}) has been removed from the cart", certificate.getId());
             removeItem(certificate.getId());
         }
 
         itemsCost = calculateItemsCost();
+        log.debug("Cart items cost = {}", itemsCost);
+        log.debug("Cart items quantity = {}", items.size());
     }
 
     private BigDecimal calculateItemsCost() {
@@ -99,6 +110,6 @@ public class Cart implements Serializable {
     }
 
     private void removeItem(long productId) {
-        items.removeIf(item -> item.getGiftCertificate().getId() == productId);
+        this.items.removeIf(item -> item.getGiftCertificate().getId() == productId);
     }
 }

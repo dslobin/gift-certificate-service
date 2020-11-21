@@ -11,7 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class OrderItemId implements Serializable {
+class OrderItemId implements Serializable {
     private long orderId;
     private long giftCertificateId;
 }

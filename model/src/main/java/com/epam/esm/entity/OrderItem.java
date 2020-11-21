@@ -16,10 +16,12 @@ public class OrderItem implements Serializable {
     @EmbeddedId
     private OrderItemId id = new OrderItemId();
 
+    @MapsId("giftCertificateId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "certificate_id", referencedColumnName = "id")
     private GiftCertificate giftCertificate;
 
+    @MapsId("orderId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", referencedColumnName = "id")
     private Order order;
@@ -29,11 +31,11 @@ public class OrderItem implements Serializable {
 
     public void setOrder(Order order) {
         this.order = order;
-        getId().setOrderId(order.getId());
+        this.id.setOrderId(order.getId());
     }
 
     public void setGiftCertificate(GiftCertificate giftCertificate) {
         this.giftCertificate = giftCertificate;
-        getId().setGiftCertificateId(giftCertificate.getId());
+        this.id.setGiftCertificateId(giftCertificate.getId());
     }
 }

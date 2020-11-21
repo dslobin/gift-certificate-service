@@ -1,7 +1,6 @@
 package com.epam.esm.entity;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -12,15 +11,16 @@ import java.math.BigDecimal;
 @Table(name = "cart_items")
 @NoArgsConstructor
 @Data
-@EqualsAndHashCode(of = "id")
 public class CartItem implements Serializable {
     @EmbeddedId
     private CartItemId id;
 
+    @MapsId("cartId")
     @JoinColumn(name = "cart_id", referencedColumnName = "id")
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private Cart cart;
 
+    @MapsId("giftCertificateId")
     @JoinColumn(name = "certificate_id", referencedColumnName = "id")
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private GiftCertificate giftCertificate;
@@ -43,11 +43,11 @@ public class CartItem implements Serializable {
 
     public void setCart(Cart cart) {
         this.cart = cart;
-        id.setCartId(cart.getId());
+        this.id.setCartId(cart.getId());
     }
 
     public void setProduct(GiftCertificate giftCertificate) {
         this.giftCertificate = giftCertificate;
-        id.setGiftCertificateId(giftCertificate.getId());
+        this.id.setGiftCertificateId(giftCertificate.getId());
     }
 }

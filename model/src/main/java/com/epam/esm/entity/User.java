@@ -32,7 +32,7 @@ public class User implements Serializable {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user")
     private Cart cart;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.ALL})

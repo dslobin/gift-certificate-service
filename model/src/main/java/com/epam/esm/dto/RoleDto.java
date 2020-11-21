@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class RoleDto extends RepresentationModel<RoleDto> {
+public class RoleDto {
     @PositiveOrZero
     private long id;
 

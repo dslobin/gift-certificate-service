@@ -29,7 +29,7 @@ public class GiftCertificate implements Serializable {
     @Column(name = "description", nullable = false, length = 2048)
     private String description;
 
-    @Column(name = "price", nullable = false, scale = 2)
+    @Column(name = "price", nullable = false, precision = 5, scale = 2)
     private BigDecimal price;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -43,7 +43,7 @@ public class GiftCertificate implements Serializable {
 
     @ManyToMany(
             fetch = FetchType.EAGER,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.ALL}
     )
     @JoinTable(
             name = "certificate_tag",

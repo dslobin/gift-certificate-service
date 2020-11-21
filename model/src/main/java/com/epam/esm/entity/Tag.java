@@ -12,8 +12,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@EqualsAndHashCode(exclude = "certificates")
-@ToString(exclude = "certificates")
 public class Tag implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,6 +21,8 @@ public class Tag implements Serializable {
     @Column(name = "name", unique = true, nullable = false, length = 128)
     private String name;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToMany(mappedBy = "tags", cascade = CascadeType.ALL)
     private Set<GiftCertificate> certificates = new HashSet<>();
 }
