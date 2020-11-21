@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -18,19 +17,21 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Repository
 public class UserDaoImpl implements UserDao {
-    @PersistenceContext(type = PersistenceContextType.EXTENDED)
+    @PersistenceContext
     private final EntityManager em;
 
     private static final String ID = "id";
     private static final String EMAIL = "email";
 
     @Override
-    public List<User> findAll() {
+    public List<User> findAll(int page, int size) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<User> cq = cb.createQuery(User.class);
         Root<User> root = cq.from(User.class);
         cq.select(root);
         TypedQuery<User> query = em.createQuery(cq);
+        query.setFirstResult((page - 1) * size);
+        query.setMaxResults(size);
         return query.getResultList();
     }
 

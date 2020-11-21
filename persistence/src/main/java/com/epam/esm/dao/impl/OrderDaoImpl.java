@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Repository
 public class OrderDaoImpl implements OrderDao {
-    @PersistenceContext(type = PersistenceContextType.EXTENDED)
+    @PersistenceContext
     private final EntityManager em;
 
     private final SessionFactory sessionFactory;
@@ -29,7 +28,11 @@ public class OrderDaoImpl implements OrderDao {
     private static final String USER = "user";
 
     @Override
-    public List<Order> findByUserEmail(String email) {
+    public List<Order> findByUserEmail(
+            int page,
+            int size,
+            String email
+    ) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Order> cq = cb.createQuery(Order.class);
         Root<Order> root = cq.from(Order.class);
@@ -39,6 +42,8 @@ public class OrderDaoImpl implements OrderDao {
                         cb.equal(userJoin.get(EMAIL), email)
                 );
         TypedQuery<Order> query = em.createQuery(cq);
+        query.setFirstResult((page - 1) * size);
+        query.setMaxResults(size);
         return query.getResultList();
     }
 

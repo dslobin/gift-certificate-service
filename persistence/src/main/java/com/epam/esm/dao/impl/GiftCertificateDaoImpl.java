@@ -14,7 +14,6 @@ import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ import java.util.Set;
 @Repository
 @Slf4j
 public class GiftCertificateDaoImpl implements GiftCertificateDao {
-    @PersistenceContext(type = PersistenceContextType.EXTENDED)
+    @PersistenceContext
     private final EntityManager em;
 
     private final SessionFactory sessionFactory;
@@ -37,25 +36,33 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     private static final String ID = "id";
 
     private static final String SORT_DELIMITER = ",";
+    private static final String PERCENT_SIGN = "%";
 
     @Override
-    public List<GiftCertificate> findAll() {
+    public List<GiftCertificate> findAll(int page, int size) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<GiftCertificate> cq = cb.createQuery(GiftCertificate.class);
         Root<GiftCertificate> root = cq.from(GiftCertificate.class);
         cq.select(root);
         TypedQuery<GiftCertificate> query = em.createQuery(cq);
+        query.setFirstResult((page - 1) * size);
+        query.setMaxResults(size);
         return query.getResultList();
     }
 
     @Override
-    public List<GiftCertificate> findAll(CertificateSearchCriteria searchCriteria) {
+    public List<GiftCertificate> findAll(
+            CertificateSearchCriteria searchCriteria,
+            int page,
+            int size
+    ) {
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<GiftCertificate> criteriaQuery = criteriaBuilder.createQuery(GiftCertificate.class);
         Root<GiftCertificate> root = criteriaQuery.from(GiftCertificate.class);
 
         List<Predicate> predicates = prepareWhereClause(
                 criteriaBuilder,
+                criteriaQuery,
                 root,
                 searchCriteria.getTags(),
                 searchCriteria.getName(),
@@ -72,11 +79,14 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
                 .orderBy(orders);
 
         TypedQuery<GiftCertificate> query = em.createQuery(criteriaQuery);
+        query.setFirstResult((page - 1) * size);
+        query.setMaxResults(size);
         return query.getResultList();
     }
 
     private List<Predicate> prepareWhereClause(
             CriteriaBuilder cb,
+            CriteriaQuery<GiftCertificate> cq,
             Root<GiftCertificate> root,
             Set<String> tags,
             String name,
@@ -85,13 +95,14 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
         List<Predicate> predicates = new ArrayList<>();
         if (!tags.isEmpty()) {
             Join<GiftCertificate, Tag> tagJoin = root.join("tags", JoinType.INNER);
-            tags.forEach(tag -> predicates.add(cb.equal(tagJoin.get(NAME), tag)));
+            predicates.add(tagJoin.get(NAME).in(tags));
+            cq.distinct(true);
         }
         if (!StringUtils.isEmpty(name)) {
-            predicates.add(cb.equal(root.get(NAME), name));
+            predicates.add(cb.like(cb.upper(root.get(NAME)), PERCENT_SIGN + name.toUpperCase() + PERCENT_SIGN));
         }
         if (!StringUtils.isEmpty(description)) {
-            predicates.add(cb.equal(root.get(DESCRIPTION), description));
+            predicates.add(cb.like(cb.upper(root.get(DESCRIPTION)), PERCENT_SIGN + description.toUpperCase() + PERCENT_SIGN));
         }
         return predicates;
     }
@@ -167,6 +178,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     public void update(GiftCertificate giftCertificate) {
         Session session = sessionFactory.getCurrentSession();
         session.update(giftCertificate);
+        session.flush();
     }
 
     @Override

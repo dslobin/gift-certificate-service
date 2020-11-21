@@ -2,16 +2,13 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
@@ -25,7 +22,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Repository
 public class TagDaoImpl implements TagDao {
-    @PersistenceContext(type = PersistenceContextType.EXTENDED)
+    @PersistenceContext
     private final EntityManager em;
 
     private final SessionFactory sessionFactory;
@@ -34,12 +31,14 @@ public class TagDaoImpl implements TagDao {
     private static final String NAME = "name";
 
     @Override
-    public Set<Tag> findAll() {
+    public Set<Tag> findAll(int page, int size) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Tag> cq = cb.createQuery(Tag.class);
         Root<Tag> root = cq.from(Tag.class);
         cq.select(root);
         TypedQuery<Tag> query = em.createQuery(cq);
+        query.setFirstResult((page - 1) * size);
+        query.setMaxResults(size);
         List<Tag> tags = query.getResultList();
         return new HashSet<>(tags);
     }
