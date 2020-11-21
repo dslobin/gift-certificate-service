@@ -1,9 +1,6 @@
 package com.epam.esm.service;
 
-import com.epam.esm.entity.Cart;
-import com.epam.esm.entity.CartItem;
-
-import java.util.List;
+import com.epam.esm.dto.CartDto;
 
 public interface CartService {
 
@@ -13,7 +10,7 @@ public interface CartService {
      * @param userEmail unique identifier of the specified user
      * @return user's cart
      */
-    Cart getCartOrCreate(String userEmail);
+    CartDto getCartOrCreate(String userEmail);
 
     /**
      * Adds new item into the specified user cart and saves cart.
@@ -23,17 +20,7 @@ public interface CartService {
      * @param quantity      of the gift certificates
      * @return updated cart
      */
-    Cart addToCart(String userEmail, long certificateId, int quantity);
-
-    /**
-     * Adds all the listed items into the specified user cart and saves cart.
-     *
-     * @param userEmail unique identifier of the specified user
-     * @param cartItems to save
-     * @return updated cart
-     */
-    Cart addAllToCart(String userEmail, List<CartItem> cartItems);
-
+    CartDto addToCart(String userEmail, long certificateId, int quantity);
 
     /**
      * Clears the specified user cart.
@@ -41,5 +28,5 @@ public interface CartService {
      * @param userEmail unique identifier of the specified user
      * @return updated cart
      */
-    Cart clearCart(String userEmail);
+    CartDto clearCart(String userEmail);
 }

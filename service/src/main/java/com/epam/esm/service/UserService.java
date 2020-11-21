@@ -1,14 +1,27 @@
 package com.epam.esm.service;
 
-import com.epam.esm.entity.User;
+import com.epam.esm.dto.UserDto;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    List<User> findAll(int page, int size);
+    /**
+     * @param page current page index
+     * @param size number of items per page
+     * @return list of users
+     */
+    List<UserDto> findAll(int page, int size);
 
-    Optional<User> findById(long id);
+    /**
+     * @param id unique identifier of the specified user
+     * @return user associated with the specified id
+     */
+    Optional<UserDto> findById(long id);
 
-    Optional<User> findByEmail(String email);
+    /**
+     * @param email unique identifier of the specified user
+     * @return user associated with the specified email
+     */
+    Optional<UserDto> findByEmail(String email);
 }

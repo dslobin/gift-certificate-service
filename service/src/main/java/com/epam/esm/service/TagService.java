@@ -1,18 +1,41 @@
 package com.epam.esm.service;
 
-import com.epam.esm.entity.Tag;
+import com.epam.esm.dto.TagDto;
 
 import java.util.Optional;
 import java.util.Set;
 
 public interface TagService {
-    Set<Tag> findAll(int page, int size);
+    /**
+     * @param page current page index
+     * @param size number of items per page
+     * @return tag list
+     */
+    Set<TagDto> findAll(int page, int size);
 
-    Optional<Tag> findById(long id);
+    /**
+     * @param id unique identifier of the specified tag
+     * @return tag associated with the specified id
+     */
+    Optional<TagDto> findById(long id);
 
-    Optional<Tag> findByName(String name);
+    /**
+     * @param name unique identifier of the specified tag
+     * @return tag associated with the specified name
+     */
+    Optional<TagDto> findByName(String name);
 
-    Tag create(Tag tag);
+    /**
+     * Creates new tag.
+     *
+     * @return created tag
+     */
+    TagDto create(TagDto tag);
 
+    /**
+     * Removes the tag.
+     *
+     * @param id unique identifier of the specified tag
+     */
     void deleteById(long id);
 }
