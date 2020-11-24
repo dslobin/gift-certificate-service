@@ -4,7 +4,6 @@ import com.epam.esm.dao.CartDao;
 import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.dto.CartDto;
-import com.epam.esm.dto.CartItemDto;
 import com.epam.esm.entity.Cart;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.User;
@@ -30,12 +29,14 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public CartDto getCartOrCreate(String userEmail) {
-        Cart cart = findCartOrCreate(userEmail);
+    public CartDto getCartOrCreate(String userEmail)
+            throws UserNotFoundException {
+        Cart cart = findUserCartOrCreate(userEmail);
         return cartMapper.toDto(cart);
     }
 
-    private Cart findCartOrCreate(String userEmail) {
+    private Cart findUserCartOrCreate(String userEmail)
+            throws UserNotFoundException {
         User user = userDao.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException(userEmail));
         Optional<Cart> existedCart = cartDao.findById(user.getId());
@@ -53,13 +54,14 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public CartDto addToCart(String userEmail, long certificateId, int quantity) {
+    public CartDto addToCart(String userEmail, long certificateId, int quantity)
+            throws GiftCertificateNotFoundException, UserNotFoundException {
         CartDto cartDto = getCartOrCreate(userEmail);
         GiftCertificate giftCertificate = giftCertificateDao.findById(certificateId)
                 .orElseThrow(() -> new GiftCertificateNotFoundException(certificateId));
 
         if (giftCertificate.isAvailable()) {
-            Cart cart = findCartOrCreate(userEmail);
+            Cart cart = findUserCartOrCreate(userEmail);
             cart.update(giftCertificate, quantity);
             Cart updatedCart = cartDao.save(cart);
             return cartMapper.toDto(updatedCart);
@@ -69,26 +71,11 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public CartDto clearCart(String userEmail) {
-        Cart cart = findCartOrCreate(userEmail);
+    public CartDto clearCart(String userEmail)
+            throws UserNotFoundException {
+        Cart cart = findUserCartOrCreate(userEmail);
         cart.clear();
         Cart clearedCart = cartDao.save(cart);
         return cartMapper.toDto(clearedCart);
-    }
-
-    private Cart toModel(CartDto cartDto) {
-        Cart cart = new Cart();
-        User user = userDao.findByEmail(cartDto.getUserEmail())
-                .orElseThrow(() -> new UserNotFoundException(cartDto.getUserEmail()));
-        cart.setUser(user);
-        for (CartItemDto cartItemDto : cartDto.getCartItems()) {
-            Optional<GiftCertificate> existedCertificate = giftCertificateDao.findById(cartItemDto.getCertificateId());
-            if (existedCertificate.isPresent()) {
-                GiftCertificate certificate = existedCertificate.get();
-                if (certificate.isAvailable())
-                    cart.update(certificate, cartItemDto.getQuantity());
-            }
-        }
-        return cart;
     }
 }

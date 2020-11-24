@@ -3,6 +3,8 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.NameAlreadyExistException;
+import com.epam.esm.exception.TagNotFoundException;
 import com.epam.esm.mapper.TagMapper;
 import com.epam.esm.service.TagService;
 import lombok.RequiredArgsConstructor;
@@ -29,25 +31,31 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<TagDto> findById(long id) {
-        Tag tag = tagDao.findById(id).orElse(null);
-        return Optional.ofNullable(tagMapper.toDto(tag));
+    public TagDto findById(long id) {
+        Tag tag = tagDao.findById(id)
+                .orElseThrow(() -> new TagNotFoundException(id));
+        return tagMapper.toDto(tag);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<TagDto> findByName(String name) {
-        Tag tag = tagDao.findByName(name).orElse(null);
-        return Optional.ofNullable(tagMapper.toDto(tag));
+    public TagDto findByName(String name) {
+        Tag tag = tagDao.findByName(name)
+                .orElseThrow(() -> new TagNotFoundException(name));
+        return tagMapper.toDto(tag);
     }
 
     @Override
     @Transactional
     public TagDto create(TagDto tagDto) {
+        Optional<Tag> existedTag = tagDao.findByName(tagDto.getName());
+        if (existedTag.isPresent()) {
+            String existedName = existedTag.get().getName();
+            throw new NameAlreadyExistException(existedName);
+        }
         Tag tag = tagMapper.toModel(tagDto);
-        long tagId = tagDao.save(tag);
-        tag.setId(tagId);
-        return tagMapper.toDto(tag);
+        Tag createdTag = tagDao.save(tag);
+        return tagMapper.toDto(createdTag);
     }
 
     @Override

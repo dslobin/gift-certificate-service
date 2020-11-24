@@ -6,6 +6,7 @@ import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.dto.GiftCertificateDto;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.GiftCertificateNotFoundException;
 import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.service.GiftCertificateService;
 import lombok.RequiredArgsConstructor;
@@ -65,34 +66,38 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<GiftCertificateDto> findById(long id) {
-        GiftCertificate byId = giftCertificateDao.findById(id).orElse(null);
-        return Optional.ofNullable(giftCertificateMapper.toDto(byId));
+    public GiftCertificateDto findById(long id)
+            throws GiftCertificateNotFoundException {
+        GiftCertificate byId = giftCertificateDao.findById(id)
+                .orElseThrow(() -> new GiftCertificateNotFoundException(id));
+        return giftCertificateMapper.toDto(byId);
     }
 
     @Override
     @Transactional
     public GiftCertificateDto create(GiftCertificateDto certificateDto) {
-        log.debug("Get certificate dto to create {}", certificateDto);
         GiftCertificate giftCertificate = giftCertificateMapper.toModel(certificateDto);
         Set<Tag> tags = fillCertificateTags(giftCertificate);
         giftCertificate.setTags(tags);
         giftCertificate.setCreateDate(ZonedDateTime.now());
-        log.debug("Create certificate {}", giftCertificate);
-        long certificateId = giftCertificateDao.save(giftCertificate);
-        giftCertificate.setId(certificateId);
-        return giftCertificateMapper.toDto(giftCertificate);
+        GiftCertificate createdCertificate = giftCertificateDao.save(giftCertificate);
+        return giftCertificateMapper.toDto(createdCertificate);
     }
 
     @Override
     @Transactional
-    public GiftCertificateDto update(GiftCertificateDto certificateDto) {
+    public GiftCertificateDto update(GiftCertificateDto certificateDto)
+            throws GiftCertificateNotFoundException {
+        boolean isCertificateExist = giftCertificateDao.findById(certificateDto.getId()).isPresent();
+        if (!isCertificateExist) {
+            throw new GiftCertificateNotFoundException(certificateDto.getId());
+        }
         GiftCertificate giftCertificate = giftCertificateMapper.toModel(certificateDto);
         Set<Tag> tags = fillCertificateTags(giftCertificate);
         giftCertificate.setTags(tags);
         giftCertificate.setLastUpdateDate(ZonedDateTime.now());
-        log.debug("Update certificate {}", giftCertificate);
         giftCertificateDao.update(giftCertificate);
+        log.debug("Updated certificate {}", giftCertificate);
         return giftCertificateMapper.toDto(giftCertificate);
     }
 

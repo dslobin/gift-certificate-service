@@ -4,8 +4,10 @@ import com.epam.esm.dao.CartDao;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.dto.OrderDto;
+import com.epam.esm.dto.UserDto;
 import com.epam.esm.entity.*;
 import com.epam.esm.exception.EmptyCartException;
+import com.epam.esm.exception.OrderNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;
 import com.epam.esm.mapper.OrderMapper;
 import com.epam.esm.service.OrderService;
@@ -15,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,22 +34,26 @@ public class OrderServiceImpl implements OrderService {
             int size,
             String userEmail
     ) {
-        return orderDao.findByUserEmail(page, size, userEmail).stream()
+        User user = userDao.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException(userEmail));
+        return orderDao.findByUserEmail(page, size, user.getEmail()).stream()
                 .map(orderMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<OrderDto> findUserOrder(String userEmail, long orderId) {
+    public OrderDto findUserOrder(String userEmail, long orderId)
+            throws OrderNotFoundException {
         Order userOrder = orderDao.findByIdAndUserEmail(orderId, userEmail)
-                .orElse(null);
-        return Optional.ofNullable(orderMapper.toDto(userOrder));
+                .orElseThrow(() -> new OrderNotFoundException(orderId, userEmail));
+        return orderMapper.toDto(userOrder);
     }
 
     @Override
     @Transactional
-    public OrderDto createUserOrder(String userEmail) {
+    public OrderDto createUserOrder(String userEmail)
+            throws UserNotFoundException, EmptyCartException {
         User user = userDao.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException(userEmail));
 
@@ -60,17 +65,19 @@ public class OrderServiceImpl implements OrderService {
         Order order = createNewOrder(user, cart);
 
         fillOrderItems(cart, order);
-        orderDao.save(order);
+        Order createdOrder = orderDao.save(order);
 
         clearCart(cart);
-        return orderMapper.toDto(order);
+        return orderMapper.toDto(createdOrder);
     }
 
     private Order createNewOrder(User user, Cart cart) {
         Order order = new Order();
 
         order.setUser(user);
-        order.setCreatedAt(ZonedDateTime.now());
+        ZonedDateTime createDate = ZonedDateTime.now();
+        order.setCreatedAt(createDate);
+        order.setUpdatedAt(createDate);
         order.setPrice(cart.getItemsCost());
 
         return order;
@@ -84,13 +91,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderItem createOrderedCertificate(Order order, CartItem item) {
-        OrderItem orderedProduct = new OrderItem();
+        OrderItem orderedCertificate = new OrderItem();
 
-        orderedProduct.setGiftCertificate(item.getGiftCertificate());
-        orderedProduct.setOrder(order);
-        orderedProduct.setQuantity(item.getQuantity());
+        orderedCertificate.setGiftCertificate(item.getGiftCertificate());
+        orderedCertificate.setOrder(order);
+        orderedCertificate.setQuantity(item.getQuantity());
 
-        return orderedProduct;
+        return orderedCertificate;
     }
 
     private void clearCart(Cart cart) {

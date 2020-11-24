@@ -1,6 +1,8 @@
 package com.epam.esm.service;
 
 import com.epam.esm.dto.CartDto;
+import com.epam.esm.exception.GiftCertificateNotFoundException;
+import com.epam.esm.exception.UserNotFoundException;
 
 public interface CartService {
 
@@ -9,6 +11,7 @@ public interface CartService {
      *
      * @param userEmail unique identifier of the specified user
      * @return user's cart
+     * @throws UserNotFoundException if the user with the specified email doesn't exist
      */
     CartDto getCartOrCreate(String userEmail);
 
@@ -19,6 +22,8 @@ public interface CartService {
      * @param certificateId unique identifier of the specified gift certificate
      * @param quantity      of the gift certificates
      * @return updated cart
+     * @throws GiftCertificateNotFoundException if the specified gift certificate does not exist
+     * @throws UserNotFoundException            if the user with the specified email doesn't exist
      */
     CartDto addToCart(String userEmail, long certificateId, int quantity);
 
@@ -27,6 +32,7 @@ public interface CartService {
      *
      * @param userEmail unique identifier of the specified user
      * @return updated cart
+     * @throws UserNotFoundException if the user with the specified email doesn't exist
      */
     CartDto clearCart(String userEmail);
 }
