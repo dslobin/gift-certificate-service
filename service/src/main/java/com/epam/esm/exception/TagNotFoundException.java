@@ -3,7 +3,11 @@ package com.epam.esm.exception;
 import com.epam.esm.util.Translator;
 
 public class TagNotFoundException extends RuntimeException {
-    public TagNotFoundException(Long tagId) {
-        super(Translator.toLocale("error.notFound.tag") + tagId);
+    public TagNotFoundException(long tagId) {
+        super(Translator.toLocale("error.notFound.tagId") + tagId);
+    }
+
+    public TagNotFoundException(String tagName) {
+        super(Translator.toLocale("error.notFound.tagName") + tagName);
     }
 }
