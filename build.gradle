@@ -1,6 +1,7 @@
 plugins {
     id "io.spring.dependency-management" version "1.0.10.RELEASE"
     id "org.springframework.boot" version "2.3.5.RELEASE"
+    id 'jacoco'
 }
 
 allprojects {
@@ -12,6 +13,7 @@ subprojects {
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'java'
+    apply plugin: 'jacoco'
 
     sourceCompatibility = 1.8
 
@@ -37,6 +39,8 @@ subprojects {
         testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
         testImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
         testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.5.15'
+        testImplementation group: 'org.jacoco', name: 'org.jacoco.agent', version: '0.8.5'
+        testImplementation group: 'org.jacoco', name: 'org.jacoco.ant', version: '0.8.5'
 
         testCompileOnly 'org.projectlombok:lombok:1.18.12'
         testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
@@ -44,5 +48,22 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        finalizedBy jacocoTestReport // report is always generated after tests run
+    }
+
+    jacocoTestReport {
+        dependsOn test // tests are required to run before generating the report
+    }
+
+    jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                excludes = [
+                        'com.epam.esm.model',
+                        'com.epam.esm.service',
+                        'com.epam.esm.controller'
+                ]
+            }
+        }
     }
 }

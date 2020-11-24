@@ -1,7 +1,6 @@
 dependencies {
     implementation project(':model')
     implementation project(':service')
-    implementation project(':logging')
 }
 
 bootJar {
