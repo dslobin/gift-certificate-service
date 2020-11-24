@@ -1,16 +1,19 @@
 package com.epam.esm.dao.certificate;
 
-import com.epam.esm.dao.config.JdbcContextTest;
-import com.epam.esm.dao.tag.TagDao;
+import com.epam.esm.dao.GiftCertificateDao;
+import com.epam.esm.dao.config.JpaContextTest;
+import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -25,65 +28,68 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = JdbcContextTest.class, loader = AnnotationConfigContextLoader.class)
+@ContextConfiguration(classes = JpaContextTest.class)
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Transactional
 class JdbcGiftCertificateDaoTest {
-    @Autowired
-    private TagDao tagDao;
-
     @Autowired
     private GiftCertificateDao certificateDao;
 
     @Test
-    @Sql(scripts = {"classpath:test-schema.sql", "/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenMultipleCertificates_whenFindAll_thenGetCorrectCount() {
-        List<GiftCertificate> actualCertificates = certificateDao.findAll();
+        int page = 1;
+        int size = 5;
+        List<GiftCertificate> actualCertificates = certificateDao.findAll(page, size);
 
         int expectedCertificatesCount = 5;
         assertEquals(expectedCertificatesCount, actualCertificates.size());
     }
 
+    // TODO: 24.11.2020 check return npe
     @Test
-    @Sql(scripts = {"classpath:test-schema.sql", "/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenMultipleCertificates_whenFindAllWithParameters_thenGetCorrectCount() {
         String paramName = "курс";
-        List<GiftCertificate> actualCertificates = certificateDao.findAll(null, paramName, null, null, null);
+        int page = 1;
+        int size = 5;
+        CertificateSearchCriteria criteria = new CertificateSearchCriteria(null, paramName, null, null, null);
+        List<GiftCertificate> actualCertificates = certificateDao.findAll(criteria, page, size);
 
         int expectedCertificatesCount = 2;
         assertEquals(expectedCertificatesCount, actualCertificates.size());
     }
 
     @Test
-    @Sql(scripts = {"classpath:test-schema.sql", "/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenCertificateId_whenFindById_thenGetCorrectGiftCertificate() {
         long requiredCertificateId = 1;
         Optional<GiftCertificate> actualCertificate = certificateDao.findById(requiredCertificateId);
 
         assertTrue(actualCertificate.isPresent());
-        assertEquals(requiredCertificateId, actualCertificate.get().getId());
+
+        long actualCertificateId = actualCertificate.get().getId();
+        assertEquals(requiredCertificateId, actualCertificateId);
     }
 
+    // TODO: 24.11.2020 fix persistence exception
     @Test
-    @Sql(scripts = {"classpath:test-schema.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenGiftCertificate_whenSave_thenGetCorrectGiftCertificateId() {
         GiftCertificate certificate = buildCertificate();
-
-        long insertedCertificateId = certificateDao.save(certificate);
-
         Set<Tag> certificateTags = certificate.getTags();
 
-        certificateTags.forEach(tag -> {
-            tagDao.save(tag.getName());
-            certificateDao.saveCertificateTag(insertedCertificateId, tag.getId());
-        });
+        GiftCertificate savedCertificate = certificateDao.save(certificate);
+        Set<Tag> savedCertificateTags = savedCertificate.getTags();
 
-        Set<Tag> savedTags = tagDao.findAllByGiftCertificateId(insertedCertificateId);
-        boolean isCertificateIdNotZero = insertedCertificateId != 0;
-        assertEquals(certificateTags.size(), savedTags.size());
-        assertTrue(isCertificateIdNotZero);
+        assertEquals(certificateTags.size(), savedCertificateTags.size());
+        long expectedTagId = 1;
+        assertEquals(expectedTagId, savedCertificate.getId());
     }
 
+    // TODO: 24.11.2020 implement certificate dao update method
     @Test
-    @Sql(scripts = {"classpath:test-schema.sql", "/test-certificates-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = {"/test-certificates-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenNewGiftCertificate_whenUpdateCertificate_thenGetCorrectGiftCertificate() {
         GiftCertificate certificate = buildCertificate();
 
@@ -101,19 +107,19 @@ class JdbcGiftCertificateDaoTest {
 
     private GiftCertificate buildCertificate() {
         long id = 1L;
-        String name = "DIVING LESSONS";
+        String name = "Diving Lessons";
         String description = "Gift certificate entitles you to attend 3 diving lessons from a professional instructor";
         BigDecimal price = BigDecimal.valueOf(135.15);
         ZonedDateTime createDate = ZonedDateTime.now();
         Duration duration = Duration.ofDays(31);
-        Tag tagActiveRest = new Tag(1L, "active_rest");
-        Tag tagSport = new Tag(2L, "sport");
+        Tag tagActiveRest = new Tag(1L, "active_rest", null);
+        Tag tagSport = new Tag(2L, "sport", null);
         Set<Tag> tags = Stream.of(tagActiveRest, tagSport).collect(Collectors.toSet());
-        return new GiftCertificate(id, name, description, price, createDate, null, duration, tags);
+        return new GiftCertificate(id, name, description, price, createDate, null, duration, tags, true);
     }
 
     @Test
-    @Sql(scripts = {"classpath:test-schema.sql", "/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenGiftCertificateId_whenDelete_thenGetOk() {
         long requiredCertificateId = 1;
         certificateDao.deleteById(requiredCertificateId);

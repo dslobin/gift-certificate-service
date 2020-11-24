@@ -24,6 +24,8 @@ public class OrderDto extends RepresentationModel<OrderDto> {
 
     private ZonedDateTime createdAt;
 
+    private ZonedDateTime updatedAt;
+
     @PositiveOrZero
     private BigDecimal cost;
 }
