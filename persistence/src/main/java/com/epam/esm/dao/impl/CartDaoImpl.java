@@ -3,9 +3,6 @@ package com.epam.esm.dao.impl;
 import com.epam.esm.dao.CartDao;
 import com.epam.esm.entity.Cart;
 import com.epam.esm.entity.User;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -14,13 +11,10 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Repository
 public class CartDaoImpl implements CartDao {
     @PersistenceContext
-    private final EntityManager em;
-
-    private final SessionFactory sessionFactory;
+    private EntityManager em;
 
     private static final String ID = "id";
 
@@ -43,9 +37,8 @@ public class CartDaoImpl implements CartDao {
 
     @Override
     public Cart save(Cart cart) {
-        Session session = sessionFactory.getCurrentSession();
-        long savedCartId = (long) session.save(cart);
-        cart.setId(savedCartId);
+        em.persist(cart);
+        em.flush();
         return cart;
     }
 

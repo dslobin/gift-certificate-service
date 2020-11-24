@@ -32,9 +32,9 @@ public interface TagDao {
     /**
      * Saves a given tag.
      *
-     * @return the saved tag id.
+     * @return the saved.
      */
-    long save(Tag tag);
+    Tag save(Tag tag);
 
     /**
      * Deletes the tag with the given id.

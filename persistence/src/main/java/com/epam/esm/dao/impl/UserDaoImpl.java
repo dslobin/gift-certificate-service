@@ -2,7 +2,6 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.entity.User;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -14,11 +13,10 @@ import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
 
-@RequiredArgsConstructor
 @Repository
 public class UserDaoImpl implements UserDao {
     @PersistenceContext
-    private final EntityManager em;
+    private EntityManager em;
 
     private static final String ID = "id";
     private static final String EMAIL = "email";

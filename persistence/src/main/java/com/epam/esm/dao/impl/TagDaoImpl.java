@@ -2,9 +2,6 @@ package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.entity.Tag;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -19,13 +16,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@RequiredArgsConstructor
 @Repository
 public class TagDaoImpl implements TagDao {
     @PersistenceContext
-    private final EntityManager em;
-
-    private final SessionFactory sessionFactory;
+    private EntityManager em;
 
     private static final String ID = "id";
     private static final String NAME = "name";
@@ -72,9 +66,10 @@ public class TagDaoImpl implements TagDao {
     }
 
     @Override
-    public long save(Tag tag) {
-        Session session = sessionFactory.getCurrentSession();
-        return (Long) session.save(tag);
+    public Tag save(Tag tag) {
+        em.persist(tag);
+        em.flush();
+        return tag;
     }
 
     @Override

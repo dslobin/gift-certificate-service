@@ -4,10 +4,7 @@ import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -21,14 +18,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@RequiredArgsConstructor
+
 @Repository
 @Slf4j
 public class GiftCertificateDaoImpl implements GiftCertificateDao {
     @PersistenceContext
-    private final EntityManager em;
-
-    private final SessionFactory sessionFactory;
+    private EntityManager em;
 
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
@@ -93,7 +88,7 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
             String description
     ) {
         List<Predicate> predicates = new ArrayList<>();
-        if (!tags.isEmpty()) {
+        if (tags != null && !tags.isEmpty()) {
             Join<GiftCertificate, Tag> tagJoin = root.join("tags", JoinType.INNER);
             predicates.add(tagJoin.get(NAME).in(tags));
             cq.distinct(true);
@@ -169,16 +164,15 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     }
 
     @Override
-    public long save(GiftCertificate giftCertificate) {
-        Session session = sessionFactory.getCurrentSession();
-        return (Long) session.save(giftCertificate);
+    public GiftCertificate save(GiftCertificate giftCertificate) {
+        em.persist(giftCertificate);
+        em.flush();
+        return giftCertificate;
     }
 
     @Override
-    public void update(GiftCertificate giftCertificate) {
-        Session session = sessionFactory.getCurrentSession();
-        session.update(giftCertificate);
-        session.flush();
+    public GiftCertificate update(GiftCertificate giftCertificate) {
+        return em.merge(giftCertificate);
     }
 
     @Override

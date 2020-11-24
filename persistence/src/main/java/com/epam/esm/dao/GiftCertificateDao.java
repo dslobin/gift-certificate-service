@@ -39,12 +39,12 @@ public interface GiftCertificateDao {
      *
      * @return the saved gift certificate id.
      */
-    long save(GiftCertificate giftCertificate);
+    GiftCertificate save(GiftCertificate giftCertificate);
 
     /**
      * Updates a given gift certificate.
      */
-    void update(GiftCertificate giftCertificate);
+    GiftCertificate update(GiftCertificate giftCertificate);
 
     /**
      * Deletes the gift certificate with the given id.
