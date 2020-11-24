@@ -1,49 +1,57 @@
 package com.epam.esm.dao.config;
 
-import com.epam.esm.dao.impl.TagDaoImpl;
+import com.epam.esm.dao.*;
+import com.epam.esm.dao.impl.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
 @PropertySource("classpath:test-database.properties")
-@Import(TagDaoImpl.class)
-public class JpaTestContext {
+@EnableTransactionManagement
+public class JpaContextTest {
     @Value("${datasource.scriptEncoding}")
     private String scriptEncoding;
     @Value("${datasource.name}")
     private String dbName;
-    @Value("${datasource.schema}")
-    private String schema;
-
-    @PersistenceContext
-    private EntityManager em;
 
     private static final String[] PACKAGES_TO_SCAN = new String[]{
             "com.epam.esm.entity"
     };
 
+    @Bean
+    public OrderDao orderDao() {
+        return new OrderDaoImpl();
+    }
 
     @Bean
-    public DataSource h2DataSource() {
-        return new EmbeddedDatabaseBuilder()
-                .setType(EmbeddedDatabaseType.H2)
-                .setScriptEncoding(scriptEncoding)
-                .setName(dbName)
-                .addScript(schema)
-                .build();
+    public CartDao cartDao() {
+        return new CartDaoImpl();
+    }
+
+    @Bean
+    public UserDao userDao() {
+        return new UserDaoImpl();
+    }
+
+    @Bean
+    public GiftCertificateDao giftCertificateDao() {
+        return new GiftCertificateDaoImpl();
+    }
+
+    @Bean
+    public TagDao tagDao() {
+        return new TagDaoImpl();
     }
 
     @Bean
@@ -56,15 +64,24 @@ public class JpaTestContext {
     }
 
     @Bean
+    public DataSource h2DataSource() {
+        return new EmbeddedDatabaseBuilder()
+                .setType(EmbeddedDatabaseType.H2)
+                .setScriptEncoding(scriptEncoding)
+                .setName(dbName)
+                .build();
+    }
+
+    @Bean
     public PlatformTransactionManager hibernateTransactionManager() {
         HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setDataSource(h2DataSource());
+        transactionManager.setSessionFactory(sessionFactory().getObject());
         return transactionManager;
     }
 
     private Properties hibernateProperties() {
         Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "create");
+        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
         hibernateProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         hibernateProperties.setProperty("hibernate.show_sql", "true");
         hibernateProperties.setProperty("hibernate.format_sql", "true");

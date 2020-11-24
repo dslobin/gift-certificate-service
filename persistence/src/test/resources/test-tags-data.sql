@@ -1,10 +1,10 @@
 INSERT INTO tags(name)
-VALUES ('Travel');
+VALUES ('travel');
 INSERT INTO tags(name)
-VALUES ('Romantics');
+VALUES ('romantics');
 INSERT INTO tags(name)
-VALUES ('Quests');
+VALUES ('quests');
 INSERT INTO tags(name)
-VALUES ('Motorists');
+VALUES ('motorists');
 INSERT INTO tags(name)
-VALUES ('Exclusive');
+VALUES ('exclusive');

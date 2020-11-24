@@ -1,4 +1,4 @@
-package com.epam.esm.dao.tag;
+package com.epam.esm.dao.impl;
 
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dao.config.JpaContextTest;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Transactional
-class JdbcTagDaoTest {
+class TagDaoImplTest {
     @Autowired
     private TagDao tagDao;
 

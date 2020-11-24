@@ -3,7 +3,7 @@ VALUES ('active_rest');
 INSERT INTO tags(name)
 VALUES ('sport');
 
-INSERT INTO gift_certificates(name, description, price, create_date, duration, available)
+INSERT INTO gift_certificates(name, description, price, created_at, days_duration, available)
 VALUES ('Diving lessons',
         'Gift certificate entitles you to attend 3 diving lessons from a professional instructor',
         130.00,
