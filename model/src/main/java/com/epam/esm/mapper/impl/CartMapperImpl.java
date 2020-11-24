@@ -18,20 +18,22 @@ public class CartMapperImpl implements CartMapper {
 
         cartDto.setCertificatesCost(cart.getItemsCost());
         cartDto.setItemsCount(cart.getItemsCount());
-        cartDto.setUserEmail(cart.getUser().getEmail());
+        String userEmail = cart.getUser().getEmail();
+        cartDto.setUserEmail(userEmail);
         List<CartItemDto> cartItems = cart.getItems().stream()
-                .map(this::toCartItemDto)
+                .map(cartItem -> toCartItemDto(cartItem, userEmail))
                 .collect(Collectors.toList());
         cartDto.setCartItems(cartItems);
 
         return cartDto;
     }
 
-    private CartItemDto toCartItemDto(CartItem cartItem) {
+    private CartItemDto toCartItemDto(CartItem cartItem, String userEmail) {
         CartItemDto dto = new CartItemDto();
 
         dto.setCertificateId(cartItem.getGiftCertificate().getId());
         dto.setQuantity(cartItem.getQuantity());
+        dto.setUserEmail(userEmail);
 
         return dto;
     }

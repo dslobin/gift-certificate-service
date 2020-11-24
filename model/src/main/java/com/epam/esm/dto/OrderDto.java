@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -18,6 +19,12 @@ import java.time.ZonedDateTime;
 public class OrderDto extends RepresentationModel<OrderDto> {
     @Email
     private String userEmail;
+
+    @NotNull
+    private String firstName;
+
+    @NotNull
+    private String lastName;
 
     @PositiveOrZero
     private long orderId;

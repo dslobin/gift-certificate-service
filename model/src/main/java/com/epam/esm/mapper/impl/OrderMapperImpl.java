@@ -19,7 +19,10 @@ public class OrderMapperImpl implements OrderMapper {
         User user = order.getUser();
         orderDto.setOrderId(order.getId());
         orderDto.setUserEmail(user.getEmail());
+        orderDto.setFirstName(user.getFirstName());
+        orderDto.setLastName(user.getLastName());
         orderDto.setCreatedAt(order.getCreatedAt());
+        orderDto.setUpdatedAt(order.getCreatedAt());
         orderDto.setCost(order.getPrice());
 
         return orderDto;
