@@ -28,7 +28,7 @@ public class HibernateConfig {
     @Value("${datasource.maxPoolSize}")
     private Integer maxPoolSize;
 
-    private static final String[] PACKAGES_TO_SCAN = new String[]{
+    private static final String[] PACKAGES_TO_SCAN_ENTITIES = new String[]{
             "com.epam.esm.entity"
     };
 
@@ -36,7 +36,7 @@ public class HibernateConfig {
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource());
-        sessionFactory.setPackagesToScan(PACKAGES_TO_SCAN);
+        sessionFactory.setPackagesToScan(PACKAGES_TO_SCAN_ENTITIES);
         sessionFactory.setHibernateProperties(hibernateProperties());
         return sessionFactory;
     }

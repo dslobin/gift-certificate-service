@@ -4,7 +4,6 @@ import com.epam.esm.dao.CartDao;
 import com.epam.esm.dao.OrderDao;
 import com.epam.esm.dao.UserDao;
 import com.epam.esm.dto.OrderDto;
-import com.epam.esm.dto.UserDto;
 import com.epam.esm.entity.*;
 import com.epam.esm.exception.EmptyCartException;
 import com.epam.esm.exception.OrderNotFoundException;

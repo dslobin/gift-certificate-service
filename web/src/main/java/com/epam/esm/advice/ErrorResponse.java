@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @Builder
 @Data
-public class ErrorResponse {
+class ErrorResponse {
     private ZonedDateTime timestamp;
     private Integer status;
     private String error;

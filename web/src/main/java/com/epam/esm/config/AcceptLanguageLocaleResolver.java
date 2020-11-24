@@ -14,7 +14,7 @@ import java.util.Locale;
 @Configuration
 @Slf4j
 public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
-    private List<Locale> LOCALES = Arrays.asList(
+    private final List<Locale> LOCALES = Arrays.asList(
             new Locale("en"),
             new Locale("ru")
     );
@@ -23,7 +23,6 @@ public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
     public Locale resolveLocale(HttpServletRequest request) {
         String headerLang = request.getHeader("Accept-Language");
         log.debug("Header lang: {}", headerLang);
-        log.debug("Default locale: {}", Locale.getDefault());
         return headerLang == null || headerLang.isEmpty()
                 ? Locale.getDefault()
                 : Locale.lookup(Locale.LanguageRange.parse(headerLang), LOCALES);
