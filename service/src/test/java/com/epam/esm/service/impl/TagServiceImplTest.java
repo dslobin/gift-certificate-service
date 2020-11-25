@@ -1,7 +1,9 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.tag.TagDao;
+import com.epam.esm.dao.TagDao;
+import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.mapper.TagMapper;
 import com.epam.esm.service.TagService;
 import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
@@ -18,7 +20,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -28,59 +29,71 @@ import static org.mockito.Mockito.*;
 class TagServiceImplTest {
     @Autowired
     private TagDao tagDao;
-
+    @Autowired
+    private TagMapper tagMapper;
     @Autowired
     private TagService tagService;
 
     @Test
-    void shouldSaveTagSuccessfully() {
-        Tag tag = new Tag(1L, "Quests");
+    void givenTagDto_whenSave_thenGetOk() {
+        Tag tag = new Tag(1L, "quests", null);
 
-        given(tagDao.save(any(String.class))).willReturn(tag.getId());
+        given(tagDao.save(any(Tag.class))).willReturn(tag);
 
-        Tag savedTag = tagService.create(tag.getName());
+        TagDto tagDto = new TagDto(1L, "quests");
 
+        TagDto savedTag = tagService.create(tagDto);
         assertThat(savedTag).isNotNull();
+        assertEquals(tag.getName(), savedTag.getName());
     }
 
     @Test
-    void shouldReturnAllTags() {
-        Set<Tag> actualTags = Stream.of(
-                new Tag(1L, "Fitness_and_sports"),
-                new Tag(2L, "Beauty_salon_service"),
-                new Tag(3L, "Travel")
+    void givenTags_whenFindAll_thenGetCorrectTagSize() {
+        Set<Tag> tags = Stream.of(
+                new Tag(1L, "fitness_and_sports", null),
+                new Tag(2L, "beauty_salon_service", null),
+                new Tag(3L, "travel", null)
         ).collect(Collectors.toSet());
 
-        doReturn(actualTags).when(tagDao).findAll();
+        int page = 1;
+        int size = 5;
+        doReturn(tags).when(tagDao).findAll(page, size);
 
-        Set<Tag> expectedTags = tagService.findAll();
-        assertEquals(expectedTags, actualTags);
+        Set<TagDto> actualTags = tagService.findAll(page, size);
+        int expectedTagsSize = tags.size();
+        int actualTagsSize = actualTags.size();
+        assertEquals(expectedTagsSize, actualTagsSize);
     }
 
     @Test
-    void shouldReturnTagById() {
+    void givenTag_whenFindById_thenGetCorrectTag() {
         long tagId = 1L;
-        Tag tag = new Tag(1L, "Exclusive");
+        Tag tag = new Tag(1L, "exclusive", null);
 
         given(tagDao.findById(tagId)).willReturn(Optional.of(tag));
 
-        Optional<Tag> expectedTag = tagService.findById(tagId);
+        TagDto actualTag = tagService.findById(tagId);
 
-        assertThat(expectedTag).isNotNull();
+        assertThat(actualTag).isNotNull();
+        assertEquals(tag.getId(), actualTag.getId());
     }
 
     @Test
-    void shouldNotReturnTagById() {
-        long tagId = 100L;
-        doReturn(Optional.empty()).when(tagDao).findById(tagId);
+    void givenTag_whenFindByName_thenGetCorrectTag() {
+        long tagId = 1L;
+        String tagName = "exclusive";
+        Tag tag = new Tag(tagId, tagName, null);
 
-        Optional<Tag> expectedTag = tagService.findById(tagId);
+        given(tagDao.findByName(tagName)).willReturn(Optional.of(tag));
 
-        assertFalse(expectedTag.isPresent());
+        TagDto actualTag = tagService.findByName(tagName);
+
+        assertThat(actualTag).isNotNull();
+        assertEquals(tag.getName(), actualTag.getName());
     }
 
     @Test
-    void shouldDeleteTag() {
+    void givenTagId_whenDeleteById_thenGetOk() {
         long tagId = 1;
 
         tagService.deleteById(tagId);
