@@ -1,45 +1,22 @@
 package com.epam.esm.dao.impl;
 
+import com.epam.esm.dao.AbstractCrudDao;
 import com.epam.esm.dao.CartDao;
 import com.epam.esm.entity.Cart;
 import com.epam.esm.entity.User;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.util.Optional;
 
 @Repository
-public class CartDaoImpl implements CartDao {
-    @PersistenceContext
-    private EntityManager em;
-
-    private static final String ID = "id";
-
+public class CartDaoImpl extends AbstractCrudDao<Cart, Long> implements CartDao {
     private static final String USER = "user";
     private static final String EMAIL = "email";
 
     @Override
-    public Optional<Cart> findById(long id) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Cart> cr = cb.createQuery(Cart.class);
-        Root<Cart> root = cr.from(Cart.class);
-        cr.select(root)
-                .where(
-                        cb.equal(root.get(ID), id)
-                );
-        TypedQuery<Cart> query = em.createQuery(cr);
-        return query.getResultStream()
-                .findFirst();
-    }
-
-    @Override
-    public Cart save(Cart cart) {
-        em.persist(cart);
-        em.flush();
-        return cart;
+    public Class<Cart> getType() {
+        return Cart.class;
     }
 
     @Override

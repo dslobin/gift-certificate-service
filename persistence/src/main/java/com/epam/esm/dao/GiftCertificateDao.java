@@ -4,9 +4,8 @@ import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.entity.GiftCertificate;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface GiftCertificateDao {
+public interface GiftCertificateDao extends CrudDao<GiftCertificate, Long> {
     /**
      * Returns all gift certificates.
      *
@@ -25,31 +24,4 @@ public interface GiftCertificateDao {
      * @return all gift certificates sorted by given options
      */
     List<GiftCertificate> findAll(CertificateSearchCriteria criteria, int page, int size);
-
-    /**
-     * Retrieves a gift certificate by its id.
-     *
-     * @param id unique gift certificate identifier.
-     * @return the gift certificate with the given id or {@literal Optional#empty()} if none found.
-     */
-    Optional<GiftCertificate> findById(long id);
-
-    /**
-     * Saves a given gift certificate.
-     *
-     * @return the saved gift certificate id.
-     */
-    GiftCertificate save(GiftCertificate giftCertificate);
-
-    /**
-     * Updates a given gift certificate.
-     */
-    GiftCertificate update(GiftCertificate giftCertificate);
-
-    /**
-     * Deletes the gift certificate with the given id.
-     *
-     * @param id unique gift certificate identifier.
-     */
-    void deleteById(long id);
 }

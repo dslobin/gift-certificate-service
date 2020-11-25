@@ -5,7 +5,7 @@ import com.epam.esm.entity.Order;
 import java.util.List;
 import java.util.Optional;
 
-public interface OrderDao {
+public interface OrderDao extends CrudDao<Order, Long> {
     /**
      * Retrieves an orders by user's email.
      *
@@ -17,14 +17,6 @@ public interface OrderDao {
     List<Order> findByUserEmail(int page, int size, String email);
 
     /**
-     * Retrieves an orders by user's email.
-     *
-     * @param email unique user identifier
-     * @return all orders
-     */
-    List<Order> findByUserEmail(String email);
-
-    /**
      * Retrieves an order by its id and user's email.
      *
      * @param orderId unique order identifier.
@@ -32,9 +24,4 @@ public interface OrderDao {
      * @return the order with the given id and user's email or {@literal Optional#empty()} if none found.
      */
     Optional<Order> findByIdAndUserEmail(long orderId, String email);
-
-    /**
-     * Saves a given tag.
-     */
-    Order save(Order order);
 }

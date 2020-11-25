@@ -5,7 +5,7 @@ import com.epam.esm.entity.Tag;
 import java.util.Optional;
 import java.util.Set;
 
-public interface TagDao {
+public interface TagDao extends CrudDao<Tag, Long> {
     /**
      * Returns all tags.
      *
@@ -20,26 +20,4 @@ public interface TagDao {
      * @return the tag with the given name or {@literal Optional#empty()} if none found.
      */
     Optional<Tag> findByName(String name);
-
-    /**
-     * Retrieves a tag by its id.
-     *
-     * @param id unique tag identifier.
-     * @return the tag with the given id or {@literal Optional#empty()} if none found.
-     */
-    Optional<Tag> findById(long id);
-
-    /**
-     * Saves a given tag.
-     *
-     * @return the saved.
-     */
-    Tag save(Tag tag);
-
-    /**
-     * Deletes the tag with the given id.
-     *
-     * @param id unique tag identifier.
-     */
-    void deleteById(long id);
 }

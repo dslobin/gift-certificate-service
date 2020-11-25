@@ -1,5 +1,6 @@
 package com.epam.esm.dao.impl;
 
+import com.epam.esm.dao.AbstractCrudDao;
 import com.epam.esm.dao.GiftCertificateDao;
 import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.entity.GiftCertificate;
@@ -9,29 +10,31 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 
 @Repository
 @Slf4j
-public class GiftCertificateDaoImpl implements GiftCertificateDao {
-    @PersistenceContext
-    private EntityManager em;
-
+public class GiftCertificateDaoImpl extends AbstractCrudDao<GiftCertificate, Long> implements GiftCertificateDao {
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
     private static final String CREATE_DATE = "createDate";
-    private static final String ID = "id";
+    private static final String PRICE = "price";
+    private static final String LAST_UPDATE_DATE = "lastUpdateDate";
+    private static final String DURATION = "duration";
+    private static final String CERTIFICATE_ID = "id";
 
     private static final String SORT_DELIMITER = ",";
     private static final String PERCENT_SIGN = "%";
+
+    @Override
+    public Class<GiftCertificate> getType() {
+        return GiftCertificate.class;
+    }
 
     @Override
     public List<GiftCertificate> findAll(int page, int size) {
@@ -150,40 +153,30 @@ public class GiftCertificateDaoImpl implements GiftCertificateDao {
     }
 
     @Override
-    public Optional<GiftCertificate> findById(long id) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<GiftCertificate> cq = cb.createQuery(GiftCertificate.class);
-        Root<GiftCertificate> root = cq.from(GiftCertificate.class);
-        cq.select(root)
-                .where(
-                        cb.equal(root.get(ID), id)
-                );
-        TypedQuery<GiftCertificate> query = em.createQuery(cq);
-        return query.getResultStream()
-                .findFirst();
-    }
-
-    @Override
-    public GiftCertificate save(GiftCertificate giftCertificate) {
-        em.persist(giftCertificate);
-        em.flush();
-        return giftCertificate;
-    }
-
-    @Override
-    public GiftCertificate update(GiftCertificate giftCertificate) {
-        return em.merge(giftCertificate);
-    }
-
-    @Override
-    public void deleteById(long id) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaDelete<GiftCertificate> delete = cb.createCriteriaDelete(GiftCertificate.class);
-        Root<GiftCertificate> certificateRoot = delete.from(GiftCertificate.class);
-        delete.where(
-                cb.equal(certificateRoot.get(ID), id)
-        );
-        em.createQuery(delete)
+    public GiftCertificate update(GiftCertificate certificate) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+        CriteriaUpdate<GiftCertificate> update = cb.createCriteriaUpdate(GiftCertificate.class);
+        Root root = update.from(GiftCertificate.class);
+        if (!StringUtils.isEmpty(certificate.getName())) {
+            update.set(NAME, certificate.getName());
+        }
+        if (!StringUtils.isEmpty(certificate.getName())) {
+            update.set(DESCRIPTION, certificate.getDescription());
+        }
+        if (!StringUtils.isEmpty(certificate.getName())) {
+            update.set(PRICE, certificate.getPrice());
+        }
+        if (!StringUtils.isEmpty(certificate.getName())) {
+            update.set(LAST_UPDATE_DATE, certificate.getLastUpdateDate());
+        }
+        if (!StringUtils.isEmpty(certificate.getName())) {
+            update.set(DURATION, certificate.getDuration());
+        }
+        update.where(cb.equal(
+                root.get(CERTIFICATE_ID), certificate.getId()
+        ));
+        this.em.createQuery(update)
                 .executeUpdate();
+        return certificate;
     }
 }
