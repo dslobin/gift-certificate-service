@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.ZonedDateTime;
 import java.util.HashSet;
@@ -32,36 +31,15 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GiftCertificateDto> findAll(int page, int size) {
-        return giftCertificateDao.findAll(page, size).stream()
-                .map(giftCertificateMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<GiftCertificateDto> findAll(
             int page,
             int size,
             CertificateSearchCriteria searchCriteria
     ) {
-        List<GiftCertificate> certificates;
-        if (areAllParamsEqualsToNull(searchCriteria)) {
-            certificates = giftCertificateDao.findAll(page, size);
-        } else {
-            certificates = giftCertificateDao.findAll(searchCriteria, page, size);
-        }
+        List<GiftCertificate> certificates = giftCertificateDao.findAll(searchCriteria, page, size);
         return certificates.stream()
                 .map(giftCertificateMapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    private boolean areAllParamsEqualsToNull(CertificateSearchCriteria criteria) {
-        return StringUtils.isEmpty(criteria.getName()) &&
-                StringUtils.isEmpty(criteria.getDescription()) &&
-                StringUtils.isEmpty(criteria.getSortByName()) &&
-                StringUtils.isEmpty(criteria.getSortByCreateDate()) &&
-                criteria.getTags().isEmpty();
     }
 
     @Override

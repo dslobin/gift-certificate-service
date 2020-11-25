@@ -20,8 +20,8 @@ import java.util.Set;
 public class Cart implements Serializable {
     @Id
     @Column(name = "id", unique = true, nullable = false)
-    @GeneratedValue(generator = "gen")
-    @GenericGenerator(name = "gen", strategy = "foreign", parameters = @Parameter(name = "property", value = "user"))
+    @GeneratedValue(generator = "generator")
+    @GenericGenerator(name = "generator", strategy = "foreign", parameters = @Parameter(name = "property", value = "user"))
     private long id;
 
     @EqualsAndHashCode.Exclude

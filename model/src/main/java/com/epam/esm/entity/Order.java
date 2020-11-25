@@ -3,6 +3,7 @@ package com.epam.esm.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -25,6 +26,7 @@ public class Order implements Serializable {
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
@@ -34,6 +36,7 @@ public class Order implements Serializable {
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;

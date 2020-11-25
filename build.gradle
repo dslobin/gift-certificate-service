@@ -54,8 +54,12 @@ subprojects {
         afterEvaluate {
             classDirectories.setFrom(files(classDirectories.files.collect {
                 fileTree(dir: it, exclude: [
-                                'com/epam/esm/config/**'
-                        ]
+                        'com/epam/esm/config/**',
+                        'com/epam/esm/exception/**',
+                        'com/epam/esm/util/**',
+                        'com/epam/esm/advice/**',
+                        'com/epam/esm/Application',
+                ]
                 )
             }))
         }
@@ -66,8 +70,6 @@ subprojects {
             rule {
                 excludes = [
                         'com.epam.esm.model',
-                        'com.epam.esm.service',
-                        'com.epam.esm.controller'
                 ]
             }
         }

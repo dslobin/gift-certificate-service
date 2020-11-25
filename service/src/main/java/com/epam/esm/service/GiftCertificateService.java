@@ -7,12 +7,6 @@ import com.epam.esm.exception.GiftCertificateNotFoundException;
 import java.util.List;
 
 public interface GiftCertificateService {
-    /**
-     * @param page current page index
-     * @param size number of items per page
-     * @return gift certificate list
-     */
-    List<GiftCertificateDto> findAll(int page, int size);
 
     /**
      * @param page           current page index

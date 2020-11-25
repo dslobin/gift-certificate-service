@@ -64,10 +64,10 @@ public class OrderServiceImpl implements OrderService {
         Order order = createNewOrder(user, cart);
 
         fillOrderItems(cart, order);
-        Order createdOrder = orderDao.save(order);
+        orderDao.save(order);
 
         clearCart(cart);
-        return orderMapper.toDto(createdOrder);
+        return orderMapper.toDto(order);
     }
 
     private Order createNewOrder(User user, Cart cart) {

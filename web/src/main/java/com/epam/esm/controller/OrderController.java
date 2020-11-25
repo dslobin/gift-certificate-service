@@ -6,7 +6,6 @@ import com.epam.esm.exception.EmptyCartException;
 import com.epam.esm.exception.OrderNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;
 import com.epam.esm.service.OrderService;
-import com.epam.esm.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +25,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Validated
 public class OrderController {
     private final OrderService orderService;
-    private final UserService userService;
 
     /**
      * View orders.
@@ -75,7 +73,7 @@ public class OrderController {
      * @throws UserNotFoundException if the user with the specified email doesn't exist
      * @throws EmptyCartException    if the cart is empty
      */
-    @RequestMapping("/payment")
+    @PostMapping("/payment")
     public ResponseEntity<OrderDto> createOrder(
             @RequestBody UserDto userDto
     ) throws EmptyCartException {
