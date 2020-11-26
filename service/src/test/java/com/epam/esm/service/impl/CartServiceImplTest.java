@@ -8,7 +8,6 @@ import com.epam.esm.entity.Cart;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Role;
 import com.epam.esm.entity.User;
-import com.epam.esm.mapper.CartMapper;
 import com.epam.esm.service.CartService;
 import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
@@ -37,8 +36,6 @@ import static org.mockito.BDDMockito.given;
 class CartServiceImplTest {
     @Autowired
     private CartDao cartDao;
-    @Autowired
-    private CartMapper cartMapper;
     @Autowired
     private UserDao userDao;
     @Autowired

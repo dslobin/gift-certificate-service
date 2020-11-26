@@ -3,7 +3,6 @@ package com.epam.esm.controller;
 import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.dto.GiftCertificateDto;
 import com.epam.esm.dto.TagDto;
-import com.epam.esm.exception.GiftCertificateNotFoundException;
 import com.epam.esm.service.GiftCertificateService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -46,14 +45,13 @@ class GiftCertificateControllerTest {
     private static final int SIZE = 5;
     private static final String PARAM_PAGE = "page";
     private static final String PARAM_SIZE = "size";
-    private static final String PARAM_SEARCH_CRITERIA = "searchCriteria";
     private static final String PARAM_NAME = "name";
     private static final String PARAM_DESCRIPTION = "description";
     private static final String PARAM_SORT_BY_NAME = "sortByName";
     private static final String PARAM_SORT_BY_CREATE_DATE = "sortByCreateDate";
     private static final String PARAM_TAGS = "tags";
 
-    //@Test
+    @Test
     void givenCertificates_whenGetAll_thenGetCorrectCount() throws Exception {
         TagDto tagFirst = new TagDto(1L, "first");
         TagDto tagSecond = new TagDto(2L, "second");
@@ -62,7 +60,8 @@ class GiftCertificateControllerTest {
         GiftCertificateDto certificate2 = new GiftCertificateDto(2L, "Certificate 2", "Description 2", BigDecimal.valueOf(100.25), ZonedDateTime.now(), null, 21, tags);
         List<GiftCertificateDto> certificates = Arrays.asList(certificate1, certificate2);
 
-        CertificateSearchCriteria criteria = new CertificateSearchCriteria(new HashSet<>(), "param1", "param2", "name,asc", "createDate,desc");
+        Set<String> searchedTags = Stream.of("tag1", "tag2", "tag3").collect(Collectors.toSet());
+        CertificateSearchCriteria criteria = new CertificateSearchCriteria(searchedTags, "param1", "param2", "name,asc", "createDate,desc");
         when(certificateService.findAll(PAGE, SIZE, criteria)).thenReturn(certificates);
 
         mockMvc.perform(get("/api/certificates")
@@ -72,13 +71,16 @@ class GiftCertificateControllerTest {
                 .param(PARAM_DESCRIPTION, criteria.getDescription())
                 .param(PARAM_SORT_BY_NAME, criteria.getSortByName())
                 .param(PARAM_SORT_BY_CREATE_DATE, criteria.getSortByCreateDate())
-                .param(PARAM_TAGS, criteria.getTags().toString())
+                .param(PARAM_TAGS, searchedTags.toArray(new String[0]))
         )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", Matchers.hasSize(2)))
                 .andExpect(jsonPath("$[0].tags", Matchers.hasSize(2)))
                 .andExpect(jsonPath("$[1].tags", Matchers.hasSize(2)));
+
+        int wantedNumberOfInvocations = 1;
+        verify(certificateService, times(wantedNumberOfInvocations)).findAll(PAGE, SIZE, criteria);
     }
 
     @Test
@@ -109,15 +111,6 @@ class GiftCertificateControllerTest {
         mockMvc.perform(delete("/api/certificates/{id}", String.valueOf(certificateId))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
-    }
-
-    //@Test
-    void givenGiftCertificateId_whenGetCertificateById_thenReturnHttpStatusCode404() throws Exception {
-        long certificateId = 1L;
-        when(certificateService.findById(certificateId)).thenThrow(new GiftCertificateNotFoundException(certificateId));
-
-        mockMvc.perform(get("/api/certificates/{id}", certificateId))
-                .andExpect(status().isNotFound());
     }
 
     @Test

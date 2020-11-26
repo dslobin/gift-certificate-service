@@ -4,7 +4,6 @@ import com.epam.esm.dao.UserDao;
 import com.epam.esm.dto.UserDto;
 import com.epam.esm.entity.Role;
 import com.epam.esm.entity.User;
-import com.epam.esm.mapper.UserMapper;
 import com.epam.esm.service.UserService;
 import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
@@ -30,8 +29,6 @@ import static org.mockito.Mockito.doReturn;
 class UserServiceImplTest {
     @Autowired
     private UserDao tagDao;
-    @Autowired
-    private UserMapper tagMapper;
     @Autowired
     private UserService tagService;
 
@@ -86,9 +83,5 @@ class UserServiceImplTest {
 
         assertThat(actualUser).isNotNull();
         assertEquals(user.getEmail(), actualUser.getEmail());
-    }
-
-    //@Test
-    void findMostUsedUserTag() {
     }
 }

@@ -82,8 +82,4 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id", Matchers.is(userId), Long.class))
                 .andExpect(jsonPath("$.email", Matchers.is(userEmail)));
     }
-
-    @Test
-    void givenUserId_whenGetMostUsedUserTag_thenReturnCorrectTag() {
-    }
 }

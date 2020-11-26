@@ -55,7 +55,7 @@ class GiftCertificateServiceImplTest {
         assertEquals(expectedCertificatesSize, actualCertificatesSize);
     }
 
-    public List<GiftCertificate> getCertificates() {
+    private List<GiftCertificate> getCertificates() {
         return Arrays.asList(
                 new GiftCertificate(
                         1L,

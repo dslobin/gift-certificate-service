@@ -3,7 +3,6 @@ package com.epam.esm.service.impl;
 import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.Tag;
-import com.epam.esm.mapper.TagMapper;
 import com.epam.esm.service.TagService;
 import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
@@ -29,8 +28,6 @@ import static org.mockito.Mockito.*;
 class TagServiceImplTest {
     @Autowired
     private TagDao tagDao;
-    @Autowired
-    private TagMapper tagMapper;
     @Autowired
     private TagService tagService;
 
