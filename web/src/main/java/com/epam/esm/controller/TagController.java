@@ -51,7 +51,7 @@ public class TagController {
      * @throws TagNotFoundException if the tag with the specified id doesn't exist
      */
     @GetMapping("/{id}")
-    public ResponseEntity<TagDto> getTag(@PathVariable Long id)
+    public ResponseEntity<TagDto> getTag(@Min(1) @PathVariable Long id)
             throws TagNotFoundException {
         TagDto tagDto = tagService.findById(id);
         tagDto.add(linkTo(methodOn(TagController.class)
@@ -69,7 +69,7 @@ public class TagController {
      * @throws TagNotFoundException if the specified tag does not exist
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTag(@PathVariable Long id)
+    public ResponseEntity<Void> deleteTag(@Min(1) @PathVariable Long id)
             throws TagNotFoundException {
         TagDto tagDto = tagService.findById(id);
         tagService.deleteById(tagDto.getId());

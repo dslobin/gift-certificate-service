@@ -50,7 +50,7 @@ public class UserController {
      * @throws UserNotFoundException if the user with the specified id doesn't exist
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUser(@PathVariable Long id)
+    public ResponseEntity<UserDto> getUser(@Min(1) @PathVariable Long id)
             throws UserNotFoundException {
         UserDto user = userService.findById(id);
         user.add(linkTo(methodOn(UserController.class)
@@ -68,7 +68,7 @@ public class UserController {
      * @throws UserNotFoundException if the user with the specified id doesn't exist
      */
     @GetMapping("/{id}/tag")
-    public ResponseEntity<TagDto> getMostUsedUserTag(@PathVariable Long id)
+    public ResponseEntity<TagDto> getMostUsedUserTag(@Min(1) @PathVariable Long id)
             throws UserNotFoundException {
         String userEmail = userService.findById(id).getEmail();
         TagDto tag = userService.findMostUsedUserTag(userEmail);

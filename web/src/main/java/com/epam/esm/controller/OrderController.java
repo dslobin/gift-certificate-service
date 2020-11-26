@@ -56,7 +56,7 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<OrderDto> getOrder(
-            @PathVariable Long id,
+            @Min(1) @PathVariable Long id,
             @RequestBody UserDto userDto
     ) {
         String userEmail = userDto.getEmail();

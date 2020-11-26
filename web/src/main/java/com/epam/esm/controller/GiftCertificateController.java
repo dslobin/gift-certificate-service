@@ -55,7 +55,7 @@ public class GiftCertificateController {
      * @throws GiftCertificateNotFoundException if the certificate with the specified id doesn't exist
      */
     @GetMapping("/{id}")
-    public ResponseEntity<GiftCertificateDto> getCertificate(@PathVariable Long id)
+    public ResponseEntity<GiftCertificateDto> getCertificate(@Min(1) @PathVariable Long id)
             throws GiftCertificateNotFoundException {
         GiftCertificateDto certificateDto = giftCertificateService.findById(id);
         certificateDto.add(linkTo(methodOn(GiftCertificateController.class)
@@ -101,7 +101,7 @@ public class GiftCertificateController {
      * @throws GiftCertificateNotFoundException if the specified gift certificate does not exist
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCertificate(@PathVariable Long id)
+    public ResponseEntity<Void> deleteCertificate(@Min(1) @PathVariable Long id)
             throws GiftCertificateNotFoundException {
         GiftCertificateDto certificateDto = giftCertificateService.findById(id);
         giftCertificateService.deleteById(certificateDto.getId());
