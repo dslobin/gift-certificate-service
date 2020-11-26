@@ -1,9 +1,8 @@
 package com.epam.esm.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,9 +10,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * {@link AcceptHeaderLocaleResolver} extension that simply uses the primary locale
+ * specified in the "accept-language" header of the HTTP request
+ */
 @Configuration
 @Slf4j
-public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
+public class AcceptLanguageHeaderResolver extends AcceptHeaderLocaleResolver {
     private final List<Locale> LOCALES = Arrays.asList(
             new Locale("en"),
             new Locale("ru")
@@ -22,18 +25,9 @@ public class AcceptLanguageLocaleResolver extends AcceptHeaderLocaleResolver {
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
         String headerLang = request.getHeader("Accept-Language");
-        log.debug("Header lang: {}", headerLang);
-        return headerLang == null || headerLang.isEmpty()
+        log.debug("Header language: {}", headerLang);
+        return StringUtils.isEmpty(headerLang)
                 ? Locale.getDefault()
                 : Locale.lookup(Locale.LanguageRange.parse(headerLang), LOCALES);
-    }
-
-    @Bean
-    public ResourceBundleMessageSource messageSource() {
-        ResourceBundleMessageSource resourceBundle = new ResourceBundleMessageSource();
-        resourceBundle.setBasename("messages");
-        resourceBundle.setDefaultEncoding("UTF-8");
-        resourceBundle.setUseCodeAsDefaultMessage(true);
-        return resourceBundle;
     }
 }
