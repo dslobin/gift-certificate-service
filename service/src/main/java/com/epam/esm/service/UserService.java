@@ -5,6 +5,7 @@ import com.epam.esm.dto.UserDto;
 import com.epam.esm.exception.UserNotFoundException;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserService {
     /**
@@ -33,7 +34,7 @@ public interface UserService {
      * with the highest cost of all orders.
      *
      * @param email unique identifier of the specified user
-     * @return tag associated with the specified user order
+     * @return tags associated with the specified user order
      */
-    TagDto findMostUsedUserTag(String email);
+    Set<TagDto> findMostUsedUserTag(String email);
 }

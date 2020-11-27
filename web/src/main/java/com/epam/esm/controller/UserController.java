@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -68,12 +69,12 @@ public class UserController {
      * @throws UserNotFoundException if the user with the specified id doesn't exist
      */
     @GetMapping("/{id}/tag")
-    public ResponseEntity<TagDto> getMostUsedUserTag(@Min(1) @PathVariable Long id)
+    public ResponseEntity<Set<TagDto>> getMostUsedUserTag(@Min(1) @PathVariable Long id)
             throws UserNotFoundException {
         String userEmail = userService.findById(id).getEmail();
-        TagDto tag = userService.findMostUsedUserTag(userEmail);
+        Set<TagDto> mostUsedUserTags = userService.findMostUsedUserTag(userEmail);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(tag);
+                .body(mostUsedUserTags);
     }
 }
