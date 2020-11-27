@@ -3,6 +3,7 @@ package com.epam.esm.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -21,6 +22,7 @@ public class OrderItem implements Serializable {
     @JoinColumn(name = "certificate_id", referencedColumnName = "id")
     private GiftCertificate giftCertificate;
 
+    @ToString.Exclude
     @MapsId("orderId")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", referencedColumnName = "id")

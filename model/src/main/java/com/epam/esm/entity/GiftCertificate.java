@@ -15,8 +15,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@EqualsAndHashCode(exclude = "tags")
-@ToString(exclude = "tags")
 public class GiftCertificate implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

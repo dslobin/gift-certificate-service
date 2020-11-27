@@ -26,7 +26,6 @@ public class Order implements Serializable {
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
-    @ToString.Exclude
     @OneToMany(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 

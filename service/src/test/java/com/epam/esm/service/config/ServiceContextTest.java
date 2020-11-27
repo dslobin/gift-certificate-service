@@ -98,9 +98,10 @@ public class ServiceContextTest {
     public UserService userService(
             UserDao userDao,
             UserMapper userMapper,
-            OrderDao orderDao
+            OrderDao orderDao,
+            TagMapper tagMapper
     ) {
-        return new UserServiceImpl(userDao, userMapper, orderDao);
+        return new UserServiceImpl(userDao, userMapper, orderDao, tagMapper);
     }
 
     @Bean
