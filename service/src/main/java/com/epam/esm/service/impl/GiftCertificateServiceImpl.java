@@ -11,15 +11,20 @@ import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.service.GiftCertificateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.beans.FeatureDescriptor;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +63,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
         Set<Tag> tags = fillCertificateTags(giftCertificate);
         giftCertificate.setTags(tags);
         giftCertificate.setCreateDate(ZonedDateTime.now());
+        giftCertificate.setAvailable(true);
         GiftCertificate createdCertificate = giftCertificateDao.save(giftCertificate);
         return giftCertificateMapper.toDto(createdCertificate);
     }
@@ -66,31 +72,50 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     @Transactional
     public GiftCertificateDto update(GiftCertificateDto certificateDto)
             throws GiftCertificateNotFoundException {
-        boolean isCertificateExist = giftCertificateDao.findById(certificateDto.getId()).isPresent();
-        if (!isCertificateExist) {
+        Optional<GiftCertificate> certificateOptional = giftCertificateDao.findById(certificateDto.getId());
+        if (!certificateOptional.isPresent()) {
             throw new GiftCertificateNotFoundException(certificateDto.getId());
         }
+        GiftCertificate certificate = prepareCertificateForUpdate(certificateDto);
+        GiftCertificate certificateToUpdate = certificateOptional.get();
+        BeanUtils.copyProperties(certificate, certificateToUpdate, getNullPropertyNames(certificate));
+        giftCertificateDao.update(certificateToUpdate);
+        log.debug("Updated certificate {}", certificateToUpdate);
+        return giftCertificateMapper.toDto(certificateToUpdate);
+    }
+
+    private GiftCertificate prepareCertificateForUpdate(GiftCertificateDto certificateDto) {
         GiftCertificate giftCertificate = giftCertificateMapper.toModel(certificateDto);
         Set<Tag> tags = fillCertificateTags(giftCertificate);
         giftCertificate.setTags(tags);
         giftCertificate.setLastUpdateDate(ZonedDateTime.now());
-        giftCertificateDao.update(giftCertificate);
-        log.debug("Updated certificate {}", giftCertificate);
-        return giftCertificateMapper.toDto(giftCertificate);
+        return giftCertificate;
+    }
+
+    private String[] getNullPropertyNames(Object source) {
+        final BeanWrapper wrappedSource = new BeanWrapperImpl(source);
+        return Stream.of(wrappedSource.getPropertyDescriptors())
+                .map(FeatureDescriptor::getName)
+                .filter(propertyName -> wrappedSource.getPropertyValue(propertyName) == null)
+                .toArray(String[]::new);
     }
 
     private Set<Tag> fillCertificateTags(GiftCertificate certificate) {
-        Set<Tag> tags = new HashSet<>();
-        certificate.getTags().forEach(tag -> {
+        Set<Tag> tags = certificate.getTags();
+        if (tags == null) {
+            return null;
+        }
+        Set<Tag> newCertificateTags = new HashSet<>();
+        tags.forEach(tag -> {
             Optional<Tag> existedTag = tagDao.findByName(tag.getName());
             if (existedTag.isPresent()) {
-                tags.add(existedTag.get());
+                newCertificateTags.add(existedTag.get());
             } else {
-                tags.add(tag);
+                newCertificateTags.add(tag);
             }
         });
-        log.debug("Certificate tags {}", tags);
-        return tags;
+        log.debug("Certificate tags: {}", newCertificateTags);
+        return newCertificateTags;
     }
 
     @Override
