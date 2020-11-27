@@ -23,16 +23,13 @@ public class GiftCertificateDaoImpl extends AbstractCrudDao<GiftCertificate, Lon
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
     private static final String CREATE_DATE = "createDate";
-    private static final String PRICE = "price";
-    private static final String LAST_UPDATE_DATE = "lastUpdateDate";
-    private static final String DURATION = "duration";
-    private static final String CERTIFICATE_ID = "id";
+    private static final String TAGS = "tags";
 
     private static final String SORT_DELIMITER = ",";
     private static final String PERCENT_SIGN = "%";
 
     @Override
-    public Class<GiftCertificate> getType() {
+    protected Class<GiftCertificate> getType() {
         return GiftCertificate.class;
     }
 
@@ -92,7 +89,7 @@ public class GiftCertificateDaoImpl extends AbstractCrudDao<GiftCertificate, Lon
     ) {
         List<Predicate> predicates = new ArrayList<>();
         if (tags != null && !tags.isEmpty()) {
-            Join<GiftCertificate, Tag> tagJoin = root.join("tags", JoinType.INNER);
+            Join<GiftCertificate, Tag> tagJoin = root.join(TAGS, JoinType.INNER);
             predicates.add(tagJoin.get(NAME).in(tags));
             cq.distinct(true);
         }
@@ -150,33 +147,5 @@ public class GiftCertificateDaoImpl extends AbstractCrudDao<GiftCertificate, Lon
             return params[1];
         }
         return Sort.Direction.ASC.name();
-    }
-
-    @Override
-    public GiftCertificate update(GiftCertificate certificate) {
-        CriteriaBuilder cb = this.em.getCriteriaBuilder();
-        CriteriaUpdate<GiftCertificate> update = cb.createCriteriaUpdate(GiftCertificate.class);
-        Root root = update.from(GiftCertificate.class);
-        if (!StringUtils.isEmpty(certificate.getName())) {
-            update.set(NAME, certificate.getName());
-        }
-        if (!StringUtils.isEmpty(certificate.getName())) {
-            update.set(DESCRIPTION, certificate.getDescription());
-        }
-        if (!StringUtils.isEmpty(certificate.getName())) {
-            update.set(PRICE, certificate.getPrice());
-        }
-        if (!StringUtils.isEmpty(certificate.getName())) {
-            update.set(LAST_UPDATE_DATE, certificate.getLastUpdateDate());
-        }
-        if (!StringUtils.isEmpty(certificate.getName())) {
-            update.set(DURATION, certificate.getDuration());
-        }
-        update.where(cb.equal(
-                root.get(CERTIFICATE_ID), certificate.getId()
-        ));
-        this.em.createQuery(update)
-                .executeUpdate();
-        return certificate;
     }
 }

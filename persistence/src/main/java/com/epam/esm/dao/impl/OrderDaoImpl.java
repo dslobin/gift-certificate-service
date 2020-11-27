@@ -18,7 +18,7 @@ public class OrderDaoImpl extends AbstractCrudDao<Order, Long> implements OrderD
     private static final String USER = "user";
 
     @Override
-    public Class<Order> getType() {
+    protected Class<Order> getType() {
         return Order.class;
     }
 
@@ -56,5 +56,19 @@ public class OrderDaoImpl extends AbstractCrudDao<Order, Long> implements OrderD
         TypedQuery<Order> query = em.createQuery(cr);
         return query.getResultStream()
                 .findFirst();
+    }
+
+    @Override
+    public List<Order> findByUserEmail(String email) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Order> cq = cb.createQuery(Order.class);
+        Root<Order> root = cq.from(Order.class);
+        Join<Order, User> userJoin = root.join(USER, JoinType.INNER);
+        cq.select(root)
+                .where(
+                        cb.equal(userJoin.get(EMAIL), email)
+                );
+        TypedQuery<Order> query = em.createQuery(cq);
+        return query.getResultList();
     }
 }

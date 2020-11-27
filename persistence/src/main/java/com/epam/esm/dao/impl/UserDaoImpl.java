@@ -17,7 +17,7 @@ public class UserDaoImpl extends AbstractCrudDao<User, Long> implements UserDao 
     private static final String EMAIL = "email";
 
     @Override
-    public Class<User> getType() {
+    protected Class<User> getType() {
         return User.class;
     }
 

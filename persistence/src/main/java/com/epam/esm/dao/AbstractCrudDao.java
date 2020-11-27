@@ -16,7 +16,7 @@ public abstract class AbstractCrudDao<T, ID> implements CrudDao<T, ID> {
 
     private static final String ID = "id";
 
-    public abstract Class<T> getType();
+    protected abstract Class<T> getType();
 
     @Override
     public List<T> findAll() {

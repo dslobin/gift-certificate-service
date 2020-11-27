@@ -19,7 +19,7 @@ public class TagDaoImpl extends AbstractCrudDao<Tag, Long> implements TagDao {
     private static final String NAME = "name";
 
     @Override
-    public Class<Tag> getType() {
+    protected Class<Tag> getType() {
         return Tag.class;
     }
 

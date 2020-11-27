@@ -17,6 +17,14 @@ public interface OrderDao extends CrudDao<Order, Long> {
     List<Order> findByUserEmail(int page, int size, String email);
 
     /**
+     * Retrieves an orders by user's email.
+     *
+     * @param email unique user identifier
+     * @return all orders
+     */
+    List<Order> findByUserEmail(String email);
+
+    /**
      * Retrieves an order by its id and user's email.
      *
      * @param orderId unique order identifier.

@@ -15,7 +15,7 @@ public class CartDaoImpl extends AbstractCrudDao<Cart, Long> implements CartDao 
     private static final String EMAIL = "email";
 
     @Override
-    public Class<Cart> getType() {
+    protected Class<Cart> getType() {
         return Cart.class;
     }
 
