@@ -8,6 +8,7 @@ import com.epam.esm.mapper.CartMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -20,10 +21,7 @@ public class CartMapperImpl implements CartMapper {
         cartDto.setItemsCount(cart.getItemsCount());
         String userEmail = cart.getUser().getEmail();
         cartDto.setUserEmail(userEmail);
-        List<CartItemDto> cartItems = cart.getItems().stream()
-                .map(cartItem -> toCartItemDto(cartItem, userEmail))
-                .collect(Collectors.toList());
-        cartDto.setCartItems(cartItems);
+        cartDto.setCartItems(toCartItemDtoList(cart.getItems(), userEmail));
 
         return cartDto;
     }
@@ -36,5 +34,15 @@ public class CartMapperImpl implements CartMapper {
         dto.setUserEmail(userEmail);
 
         return dto;
+    }
+
+    private List<CartItemDto> toCartItemDtoList(Set<CartItem> cartItems, String userEmail) {
+        if (cartItems == null) {
+            return null;
+        }
+
+        return cartItems.stream()
+                .map(cartItem -> toCartItemDto(cartItem, userEmail))
+                .collect(Collectors.toList());
     }
 }

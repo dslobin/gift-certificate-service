@@ -22,10 +22,7 @@ public class UserMapperImpl implements UserMapper {
         user.setId(userDto.getId());
         user.setEmail(userDto.getEmail());
         user.setPassword(userDto.getPassword());
-        Set<Role> roles = userDto.getRoles().stream()
-                .map(this::roleDtoToRole)
-                .collect(Collectors.toSet());
-        user.setRoles(roles);
+        user.setRoles(roleDtoSetToRoleSet(userDto.getRoles()));
 
         return user;
     }
@@ -39,6 +36,16 @@ public class UserMapperImpl implements UserMapper {
         return role;
     }
 
+    private Set<Role> roleDtoSetToRoleSet(Set<RoleDto> roleDtos) {
+        if (roleDtos == null) {
+            return null;
+        }
+
+        return roleDtos.stream()
+                .map(this::roleDtoToRole)
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public UserDto toDto(User user) {
         if (user == null) {
@@ -49,10 +56,7 @@ public class UserMapperImpl implements UserMapper {
         userDto.setId(user.getId());
         userDto.setEmail(user.getEmail());
         userDto.setPassword(user.getPassword());
-        Set<RoleDto> roles = user.getRoles().stream()
-                .map(this::roleToRoleDto)
-                .collect(Collectors.toSet());
-        userDto.setRoles(roles);
+        userDto.setRoles(roleSetToRoleDtoSet(user.getRoles()));
 
         return userDto;
     }
@@ -64,5 +68,15 @@ public class UserMapperImpl implements UserMapper {
         roleDto.setName(role.getName());
 
         return roleDto;
+    }
+
+    private Set<RoleDto> roleSetToRoleDtoSet(Set<Role> roles) {
+        if (roles == null) {
+            return null;
+        }
+
+        return roles.stream()
+                .map(this::roleToRoleDto)
+                .collect(Collectors.toSet());
     }
 }

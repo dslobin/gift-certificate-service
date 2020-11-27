@@ -28,10 +28,7 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
         dto.setCreateDate(certificate.getCreateDate());
         dto.setLastUpdateDate(certificate.getLastUpdateDate());
         dto.setDurationInDays(certificate.getDuration().toDays());
-        Set<TagDto> tags = certificate.getTags().stream()
-                .map(this::tagToTagDto)
-                .collect(Collectors.toSet());
-        dto.setTags(tags);
+        dto.setTags(tagSetToTagDtoSet(certificate.getTags()));
 
         return dto;
     }
@@ -43,6 +40,16 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
         dto.setName(tag.getName());
 
         return dto;
+    }
+
+    private Set<TagDto> tagSetToTagDtoSet(Set<Tag> tags) {
+        if (tags == null) {
+            return null;
+        }
+
+        return tags.stream()
+                .map(this::tagToTagDto)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -59,10 +66,7 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
         certificate.setCreateDate(dto.getCreateDate());
         certificate.setLastUpdateDate(dto.getLastUpdateDate());
         certificate.setDuration(Duration.ofDays(dto.getDurationInDays()));
-        Set<Tag> tags = dto.getTags().stream()
-                .map(this::tagDtoToTag)
-                .collect(Collectors.toSet());
-        certificate.setTags(tags);
+        certificate.setTags(tagDtoSetToTagSet(dto.getTags()));
 
         return certificate;
     }
@@ -74,5 +78,15 @@ public class GiftCertificateMapperImpl implements GiftCertificateMapper {
         tag.setName(dto.getName());
 
         return tag;
+    }
+
+    private Set<Tag> tagDtoSetToTagSet(Set<TagDto> tagDtos) {
+        if (tagDtos == null) {
+            return null;
+        }
+
+        return tagDtos.stream()
+                .map(this::tagDtoToTag)
+                .collect(Collectors.toSet());
     }
 }
