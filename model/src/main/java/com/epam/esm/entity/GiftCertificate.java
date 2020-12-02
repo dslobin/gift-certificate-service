@@ -52,4 +52,16 @@ public class GiftCertificate implements Serializable {
 
     @Column(name = "available", nullable = false)
     private boolean available = true;
+
+    @PrePersist
+    public void prePersist() {
+        createDate = ZonedDateTime.now();
+        lastUpdateDate = ZonedDateTime.now();
+        available = true;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        lastUpdateDate = ZonedDateTime.now();
+    }
 }

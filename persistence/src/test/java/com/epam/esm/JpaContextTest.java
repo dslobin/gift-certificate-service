@@ -1,9 +1,12 @@
-package com.epam.esm.dao.config;
+package com.epam.esm.config;
 
 import com.epam.esm.dao.*;
 import com.epam.esm.dao.impl.*;
+import com.epam.esm.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -17,10 +20,11 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
-@PropertySource("classpath:test-database.properties")
-@EnableTransactionManagement
+@ComponentScan("com.epam.esm")
+//@PropertySource("classpath:test-database.properties")
+//@EnableTransactionManagement
 public class JpaContextTest {
-    @Value("${datasource.scriptEncoding}")
+    /*@Value("${datasource.scriptEncoding}")
     private String scriptEncoding;
     @Value("${datasource.name}")
     private String dbName;
@@ -28,31 +32,6 @@ public class JpaContextTest {
     private static final String[] PACKAGES_TO_SCAN = new String[]{
             "com.epam.esm.entity"
     };
-
-    @Bean
-    public OrderDao orderDao() {
-        return new OrderDaoImpl();
-    }
-
-    @Bean
-    public CartDao cartDao() {
-        return new CartDaoImpl();
-    }
-
-    @Bean
-    public UserDao userDao() {
-        return new UserDaoImpl();
-    }
-
-    @Bean
-    public GiftCertificateDao giftCertificateDao() {
-        return new GiftCertificateDaoImpl();
-    }
-
-    @Bean
-    public TagDao tagDao() {
-        return new TagDaoImpl();
-    }
 
     @Bean
     public LocalSessionFactoryBean sessionFactory() {
@@ -86,5 +65,5 @@ public class JpaContextTest {
         hibernateProperties.setProperty("hibernate.show_sql", "true");
         hibernateProperties.setProperty("hibernate.format_sql", "true");
         return hibernateProperties;
-    }
+    }*/
 }

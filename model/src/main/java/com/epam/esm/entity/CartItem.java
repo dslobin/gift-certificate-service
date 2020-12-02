@@ -35,12 +35,6 @@ public class CartItem implements Serializable {
         this.quantity = quantity;
     }
 
-    public BigDecimal calculateCost() {
-        BigDecimal itemsCount = BigDecimal.valueOf(quantity);
-        return giftCertificate.getPrice()
-                .multiply(itemsCount);
-    }
-
     public void setCart(Cart cart) {
         this.cart = cart;
         this.id.setCartId(cart.getId());
