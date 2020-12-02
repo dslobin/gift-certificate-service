@@ -1,11 +1,8 @@
 package com.epam.esm.advice;
 
-import lombok.RequiredArgsConstructor;
-
 /**
  * Enumeration of resource codes.
  */
-@RequiredArgsConstructor
 public enum ResourceCode {
     NOT_PROVIDED(0),
     TAG(10),
@@ -15,6 +12,10 @@ public enum ResourceCode {
     CART(14);
 
     private final int value;
+
+    ResourceCode(int value) {
+        this.value = value;
+    }
 
     public int value() {
         return this.value;
