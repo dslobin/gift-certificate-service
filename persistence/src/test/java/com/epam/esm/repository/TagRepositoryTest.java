@@ -1,42 +1,32 @@
 package com.epam.esm.repository;
 
-import com.epam.esm.config.JpaContextTest;
 import com.epam.esm.entity.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(SpringExtension.class)
 @DataJpaTest
-@ContextConfiguration(classes = {JpaContextTest.class})
-@EnableJpaRepositories(basePackages = {"com.epam.esm.repository"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@Transactional
-class TagDaoImplTest {
+class TagRepositoryTest {
     @Autowired
     private TagRepository tagRepository;
-
-    private static int PAGE = 1;
-    private static int SIZE = 30;
 
     @Test
     @Sql(scripts = {"/test-tags-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenMultipleTags_whenFindAll_thenGetCorrectCount() {
-        Pageable pageable = PageRequest.of(PAGE, SIZE);
-        Set<Tag> actualTags = tagRepository.findAll(pageable).toSet();
-
+        Set<Tag> actualTags = new HashSet<>(tagRepository.findAll());
         int expectedTagsCount = 5;
         assertEquals(expectedTagsCount, actualTags.size());
     }

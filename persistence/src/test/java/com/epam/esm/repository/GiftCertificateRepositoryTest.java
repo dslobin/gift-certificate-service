@@ -1,35 +1,40 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.repository;
 
-/*@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = JpaContextTest.class)
-@SpringBootTest
+import com.epam.esm.entity.GiftCertificate;
+import com.epam.esm.entity.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ExtendWith(SpringExtension.class)
+@DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@Transactional*/
-class GiftCertificateDaoImplTest {
-/*    @Autowired
-    private GiftCertificateDao certificateDao;
+class GiftCertificateRepositoryTest {
+    @Autowired
+    private GiftCertificateRepository certificateDao;
 
     @Test
     @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenMultipleCertificates_whenFindAll_thenGetCorrectCount() {
-        int page = 1;
-        int size = 5;
-        List<GiftCertificate> actualCertificates = certificateDao.findAll(page, size);
+        List<GiftCertificate> actualCertificates = certificateDao.findAll();
 
         int expectedCertificatesCount = 5;
-        assertEquals(expectedCertificatesCount, actualCertificates.size());
-    }
-
-    @Test
-    @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    void givenMultipleCertificates_whenFindAllWithParameters_thenGetCorrectCount() {
-        String paramName = "курс";
-        int page = 1;
-        int size = 5;
-        CertificateSearchCriteria criteria = new CertificateSearchCriteria(null, paramName, null, null, null);
-        List<GiftCertificate> actualCertificates = certificateDao.findAll(criteria, page, size);
-
-        int expectedCertificatesCount = 2;
         assertEquals(expectedCertificatesCount, actualCertificates.size());
     }
 
@@ -47,7 +52,12 @@ class GiftCertificateDaoImplTest {
 
     @Test
     void givenGiftCertificate_whenSave_thenGetCorrectGiftCertificateId() {
-        GiftCertificate certificate = createCertificate();
+        String name = "Diving Lessons";
+        String description = "Gift certificate entitles you to attend 3 diving lessons from a professional instructor";
+        BigDecimal price = BigDecimal.valueOf(135.15);
+        Duration duration = Duration.ofDays(31);
+        Set<Tag> tags = createTags();
+        GiftCertificate certificate = new GiftCertificate(0, name, description, price, null, null, duration, tags, true);
         Set<Tag> certificateTags = certificate.getTags();
 
         GiftCertificate savedCertificate = certificateDao.save(certificate);
@@ -56,17 +66,6 @@ class GiftCertificateDaoImplTest {
         assertEquals(certificateTags.size(), savedCertificateTags.size());
         long expectedTagId = 1;
         assertEquals(expectedTagId, savedCertificate.getId());
-    }
-
-    private GiftCertificate createCertificate() {
-        String name = "Diving Lessons";
-        String description = "Gift certificate entitles you to attend 3 diving lessons from a professional instructor";
-        BigDecimal price = BigDecimal.valueOf(135.15);
-        ZonedDateTime createDate = ZonedDateTime.now();
-        Duration duration = Duration.ofDays(31);
-        Set<Tag> tags = createTags();
-
-        return new GiftCertificate(0, name, description, price, createDate, createDate, duration, tags, true);
     }
 
     private Set<Tag> createTags() {
@@ -85,14 +84,11 @@ class GiftCertificateDaoImplTest {
         assertTrue(certificateOptional.isPresent());
         GiftCertificate certificate = certificateOptional.get();
         BigDecimal newPrice = BigDecimal.valueOf(100);
-        ZonedDateTime lastUpdateDate = ZonedDateTime.now();
         certificate.setPrice(newPrice);
-        certificate.setLastUpdateDate(lastUpdateDate);
 
-        certificateDao.update(certificate);
-        //assertFalse(Objects.isNull(certificate));
-        assertEquals(newPrice, certificate.getPrice());
-        assertEquals(lastUpdateDate, certificate.getLastUpdateDate());
+        GiftCertificate updatedCertificate = certificateDao.saveAndFlush(certificate);
+        assertEquals(newPrice, updatedCertificate.getPrice());
+        assertTrue(Objects.nonNull(updatedCertificate.getLastUpdateDate()));
     }
 
     @Test
@@ -100,5 +96,5 @@ class GiftCertificateDaoImplTest {
     void givenGiftCertificateId_whenDelete_thenGetOk() {
         long requiredCertificateId = 1;
         certificateDao.deleteById(requiredCertificateId);
-    }*/
+    }
 }
