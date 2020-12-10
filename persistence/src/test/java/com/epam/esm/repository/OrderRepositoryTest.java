@@ -1,31 +1,41 @@
-package com.epam.esm.dao.impl;
+package com.epam.esm.repository;
+
+import com.epam.esm.entity.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-// TODO: 27.11.2020
-/*@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = JpaContextTest.class)
-@SpringBootTest
+// TODO: 27.11.2020 заменить user и cart dao на mock
+@ExtendWith(SpringExtension.class)
+@DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@Transactional*/
 class OrderDaoImplTest {
-/*    @Autowired
-    private OrderDao orderDao;
     @Autowired
-    private UserDao userDao;
+    private OrderRepository orderRepository;
     @Autowired
-    private CartDao cartDao;
+    private UserRepository userRepository;
+    @Autowired
+    private CartRepository cartRepository;
 
     @Test
     @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenMultipleOrders_whenFindByUserEmail_thenGetCorrectUserOrders() {
-        int page = 1;
-        int size = 5;
         String userEmail = "jared.mccarthy.admin@mail.com";
-
-        List<Order> userOrders = orderDao.findByUserEmail(page, size, userEmail);
+        List<Order> userOrders = orderRepository.findByUserEmail(userEmail);
 
         int expectedOrdersCount = 2;
         assertEquals(expectedOrdersCount, userOrders.size());
@@ -37,7 +47,7 @@ class OrderDaoImplTest {
         String userEmail = "jared.mccarthy.admin@mail.com";
         long orderId = 1;
 
-        Optional<Order> userOrder = orderDao.findByIdAndUserEmail(orderId, userEmail);
+        Optional<Order> userOrder = orderRepository.findByIdAndUserEmail(orderId, userEmail);
 
         assertTrue(userOrder.isPresent());
 
@@ -46,26 +56,29 @@ class OrderDaoImplTest {
         assertEquals(userEmail, actualUserEmail);
     }
 
-    @Test
+    /*@Test
     @Sql(scripts = {"/test-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void givenOrder_whenSave_thenGetCorrectUserId() {
         long userId = 1;
 
-        Optional<User> userOptional = userDao.findById(userId);
+        Optional<User> userOptional = userRepository.findById(userId);
         assertTrue(userOptional.isPresent());
 
 
         User user = userOptional.get();
-        Cart cart = cartDao.findByUserEmail(user.getEmail());
+        Cart cart = cartRepository.findByUserEmail(user.getEmail()).orElse(null);
+
+        assertTrue(Objects.nonNull(cart));
+
         Order order = createNewOrder(user, cart);
         fillOrderItems(cart, order);
-        Order createdOrder = orderDao.save(order);
+        Order createdOrder = orderRepository.save(order);
         cart = clearCart(cart);
 
         assertTrue(cart.isEmpty());
         long actualUserId = createdOrder.getUser().getId();
         assertEquals(userId, actualUserId);
-    }
+    }*/
 
     private Order createNewOrder(User user, Cart cart) {
         Order order = new Order();
@@ -97,7 +110,7 @@ class OrderDaoImplTest {
     }
 
     private Cart clearCart(Cart cart) {
-        cart.clear();
-        return cartDao.save(cart);
-    }*/
+        //cart.clear();
+        return cartRepository.save(cart);
+    }
 }
