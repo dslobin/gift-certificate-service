@@ -1,9 +1,10 @@
 package com.epam.esm.security;
 
 import com.epam.esm.dto.AuthResponse;
-import com.epam.esm.dto.RoleDto;
+import com.epam.esm.dto.SignUpRequest;
 import com.epam.esm.entity.Role;
 import com.epam.esm.entity.User;
+import com.epam.esm.exception.EmailExistException;
 import com.epam.esm.exception.UserNotFoundException;
 import com.epam.esm.mapper.RoleMapper;
 import com.epam.esm.security.jwt.JwtTokenProvider;
@@ -17,7 +18,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,16 +38,16 @@ public class JwtAuthenticationService implements AuthenticationService {
             String userEmail = user.getEmail();
             Set<Role> userRoles = user.getRoles();
             String jwtToken = jwtTokenProvider.createToken(userEmail, userRoles);
-            return new AuthResponse(userEmail, jwtToken, roleSetToRoleDtoSet(userRoles));
+            return new AuthResponse(userEmail, jwtToken, roleMapper.toDto(userRoles));
         } catch (AuthenticationException e) {
             log.error("The user: {} entered an incorrect username or password", email);
             throw new BadCredentialsException("Invalid username or password");
         }
     }
 
-    private Set<RoleDto> roleSetToRoleDtoSet(Set<Role> roles) {
-        return roles.stream()
-                .map(roleMapper::toDto)
-                .collect(Collectors.toSet());
+    @Override
+    public User signUp(SignUpRequest userData)
+            throws EmailExistException {
+        return userService.create(userData);
     }
 }

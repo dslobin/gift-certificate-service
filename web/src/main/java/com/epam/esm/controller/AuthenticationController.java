@@ -2,7 +2,12 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dto.AuthResponse;
 import com.epam.esm.dto.LoginRequest;
+import com.epam.esm.dto.SignUpRequest;
+import com.epam.esm.dto.UserDto;
+import com.epam.esm.entity.User;
+import com.epam.esm.exception.EmailExistException;
 import com.epam.esm.exception.UserNotFoundException;
+import com.epam.esm.mapper.UserMapper;
 import com.epam.esm.security.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authService;
+    private final UserMapper userMapper;
 
     /**
      * Authenticates the user.
@@ -36,5 +42,19 @@ public class AuthenticationController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(authResponse);
+    }
+
+    /**
+     * Registers a user.
+     *
+     * @throws EmailExistException if the user with the specified email already exist
+     */
+    @PostMapping("/sign-up")
+    public ResponseEntity<UserDto> signUp(@RequestBody SignUpRequest signUpRequest)
+            throws EmailExistException {
+        User createdUser = authService.signUp(signUpRequest);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(userMapper.toDto(createdUser));
     }
 }
