@@ -28,10 +28,14 @@ subprojects {
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: '2.3.5.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-hateoas', version: '2.3.4.RELEASE'
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.3.5.RELEASE'
+
+
         implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.18'
         implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
         implementation group: 'io.jsonwebtoken', name: 'jjwt', version: '0.8.0'
 
+        implementation 'org.mapstruct:mapstruct:1.4.1.Final'
+        annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.1.Final'
 
         compileOnly 'org.projectlombok:lombok:1.18.12'
         annotationProcessor 'org.projectlombok:lombok:1.18.12'
@@ -40,6 +44,7 @@ subprojects {
             exclude group: 'junit', module: 'junit'
             exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         }
+        testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.3.5.RELEASE'
         testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
         testImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
         testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.5.15'
