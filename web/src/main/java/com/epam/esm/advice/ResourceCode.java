@@ -9,7 +9,8 @@ public enum ResourceCode {
     GIFT_CERTIFICATE(11),
     USER_ACCOUNT(12),
     ORDER(13),
-    CART(14);
+    CART(14),
+    ROLE(15);
 
     private final int value;
 

@@ -4,6 +4,7 @@ import com.epam.esm.exception.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,6 +51,23 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(e.getMessage())
                 .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.TAG))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<Object> handleRoleNotFoundException(
+            RoleNotFoundException e,
+            WebRequest request
+    ) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.ROLE))
                 .path(request.getDescription(false))
                 .build();
 
@@ -108,6 +126,59 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(EmailExistException.class)
+    public ResponseEntity<Object> handleExistedEmailException(
+            EmailExistException e,
+            WebRequest request
+    ) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.USER_ACCOUNT))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EmptyCartException.class)
+    public ResponseEntity<Object> handleEmptyCartException(
+            EmptyCartException e,
+            WebRequest request
+    ) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.CART))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Object> handleBadCredentialsException(
+            BadCredentialsException e,
+            WebRequest request
+    ) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.NOT_PROVIDED))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> handleConstraintViolationException(
             ConstraintViolationException e,
@@ -127,24 +198,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(messages)
                 .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.NOT_PROVIDED))
-                .path(request.getDescription(false))
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(EmptyCartException.class)
-    public ResponseEntity<Object> handleEmptyCartException(
-            EmptyCartException e,
-            WebRequest request
-    ) {
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(ZonedDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(e.getMessage())
-                .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.CART))
                 .path(request.getDescription(false))
                 .build();
 
