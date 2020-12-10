@@ -1,13 +1,14 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.TagDao;
-import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.NameAlreadyExistException;
 import com.epam.esm.exception.TagNotFoundException;
-import com.epam.esm.mapper.TagMapper;
+import com.epam.esm.repository.TagRepository;
 import com.epam.esm.service.TagService;
+import com.epam.esm.util.Translator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,45 +18,42 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TagServiceImpl implements TagService {
-    private final TagDao tagDao;
-    private final TagMapper tagMapper;
+    private final TagRepository tagDao;
+    private final Translator translator;
 
     @Override
     @Transactional(readOnly = true)
-    public Set<TagDto> findAll(int page, int size) {
-        return tagDao.findAll(page, size).stream()
-                .map(tagMapper::toDto)
+    public Set<Tag> findAll(Pageable pageable) {
+        return tagDao.findAll(pageable).get()
                 .collect(Collectors.toSet());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TagDto findById(long id) {
-        Tag tag = tagDao.findById(id)
-                .orElseThrow(() -> new TagNotFoundException(id));
-        return tagMapper.toDto(tag);
+    public Tag findById(long id) {
+        return tagDao.findById(id)
+                .orElseThrow(() ->
+                        new TagNotFoundException(String.format(translator.toLocale("error.notFound.tagId"), id)));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public TagDto findByName(String name) {
-        Tag tag = tagDao.findByName(name)
-                .orElseThrow(() -> new TagNotFoundException(name));
-        return tagMapper.toDto(tag);
+    public Optional<Tag> findByName(String name) {
+        return tagDao.findByName(name);
     }
 
     @Override
     @Transactional
-    public TagDto create(TagDto tagDto) {
-        Optional<Tag> existedTag = tagDao.findByName(tagDto.getName());
+    public Tag create(Tag tag) {
+        Optional<Tag> existedTag = tagDao.findByName(tag.getName());
         if (existedTag.isPresent()) {
             String existedName = existedTag.get().getName();
-            throw new NameAlreadyExistException(existedName);
+            log.error("A tag named: {} already exists", existedName);
+            throw new NameAlreadyExistException(String.format(translator.toLocale("error.badRequest.nameExist"), existedName));
         }
-        Tag tag = tagMapper.toModel(tagDto);
-        Tag createdTag = tagDao.save(tag);
-        return tagMapper.toDto(createdTag);
+        return tagDao.save(tag);
     }
 
     @Override

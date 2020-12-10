@@ -1,16 +1,17 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.CartDao;
-import com.epam.esm.dao.OrderDao;
-import com.epam.esm.dao.UserDao;
-import com.epam.esm.dto.OrderDto;
 import com.epam.esm.entity.*;
 import com.epam.esm.exception.EmptyCartException;
 import com.epam.esm.exception.OrderNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;
-import com.epam.esm.mapper.OrderMapper;
+import com.epam.esm.repository.OrderRepository;
+import com.epam.esm.service.CartService;
 import com.epam.esm.service.OrderService;
+import com.epam.esm.service.UserService;
+import com.epam.esm.util.Translator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,45 +21,47 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
-    private final OrderDao orderDao;
-    private final OrderMapper orderMapper;
-    private final UserDao userDao;
-    private final CartDao cartDao;
+    private final OrderRepository orderDao;
+    private final UserService userService;
+    private final CartService cartService;
+    private final Translator translator;
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderDto> findUserOrders(
-            int page,
-            int size,
-            String userEmail
-    ) {
-        User user = userDao.findByEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException(userEmail));
-        return orderDao.findByUserEmail(page, size, user.getEmail()).stream()
-                .map(orderMapper::toDto)
-                .collect(Collectors.toList());
+    public List<Order> findUserOrders(String userEmail, Pageable pageable)
+            throws UserNotFoundException {
+        User user = userService.findByEmail(userEmail);
+        return orderDao.findByUserEmail(user.getEmail(), pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public OrderDto findUserOrder(String userEmail, long orderId)
+    public List<Order> findUserOrders(String userEmail)
+            throws UserNotFoundException {
+        User user = userService.findByEmail(userEmail);
+        return orderDao.findByUserEmail(user.getEmail());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Order findUserOrder(String userEmail, long orderId)
             throws OrderNotFoundException {
-        Order userOrder = orderDao.findByIdAndUserEmail(orderId, userEmail)
-                .orElseThrow(() -> new OrderNotFoundException(orderId, userEmail));
-        return orderMapper.toDto(userOrder);
+        return orderDao.findByIdAndUserEmail(orderId, userEmail)
+                .orElseThrow(() -> new OrderNotFoundException(String.format(translator.toLocale("error.notFound.tagId"), orderId, userEmail)));
     }
 
     @Override
     @Transactional
-    public OrderDto createUserOrder(String userEmail)
+    public Order createUserOrder(String userEmail)
             throws UserNotFoundException, EmptyCartException {
-        User user = userDao.findByEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException(userEmail));
+        User user = userService.findByEmail(userEmail);
 
-        Cart cart = cartDao.findByUserEmail(user.getEmail());
-        if (cart.isEmpty()) {
-            throw new EmptyCartException();
+        Cart cart = cartService.getCartOrCreate(user.getEmail());
+        if (cartService.isCartEmpty(cart)) {
+            log.error("The user with email = {} tried to create an order with an empty cart", userEmail);
+            throw new EmptyCartException(translator.toLocale("error.badRequest.emptyCart"));
         }
 
         Order order = createNewOrder(user, cart);
@@ -66,8 +69,8 @@ public class OrderServiceImpl implements OrderService {
         fillOrderItems(cart, order);
         orderDao.save(order);
 
-        clearCart(cart);
-        return orderMapper.toDto(order);
+        cartService.clearCart(userEmail);
+        return order;
     }
 
     private Order createNewOrder(User user, Cart cart) {
@@ -97,10 +100,5 @@ public class OrderServiceImpl implements OrderService {
         orderedCertificate.setQuantity(item.getQuantity());
 
         return orderedCertificate;
-    }
-
-    private void clearCart(Cart cart) {
-        cart.clear();
-        cartDao.save(cart);
     }
 }

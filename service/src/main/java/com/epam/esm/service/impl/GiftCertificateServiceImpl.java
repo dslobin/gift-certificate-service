@@ -1,95 +1,165 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.GiftCertificateDao;
-import com.epam.esm.dao.TagDao;
 import com.epam.esm.dto.CertificateSearchCriteria;
-import com.epam.esm.dto.GiftCertificateDto;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.GiftCertificateNotFoundException;
-import com.epam.esm.mapper.GiftCertificateMapper;
+import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
+import com.epam.esm.service.TagService;
+import com.epam.esm.specification.GiftCertificateSpecification;
+import com.epam.esm.util.Translator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.beans.FeatureDescriptor;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GiftCertificateServiceImpl implements GiftCertificateService {
-    private final GiftCertificateDao giftCertificateDao;
-    private final TagDao tagDao;
-    private final GiftCertificateMapper giftCertificateMapper;
+    private final GiftCertificateRepository certificateRepository;
+    private final TagService tagService;
+    private final Translator translator;
+
+    private static final String NAME = "name";
+    private static final String CREATE_DATE = "createDate";
+    private static final String SORT_DELIMITER = ",";
 
     @Override
     @Transactional(readOnly = true)
-    public List<GiftCertificateDto> findAll(
-            int page,
-            int size,
-            CertificateSearchCriteria searchCriteria
+    public List<GiftCertificate> findAll(
+            CertificateSearchCriteria searchCriteria,
+            Pageable pageable
     ) {
-        List<GiftCertificate> certificates = giftCertificateDao.findAll(searchCriteria, page, size);
-        return certificates.stream()
-                .map(giftCertificateMapper::toDto)
-                .collect(Collectors.toList());
+        Specification<GiftCertificate> specification = prepareWhereClause(
+                searchCriteria.getName(),
+                searchCriteria.getDescription(),
+                searchCriteria.getTags()
+        );
+        List<Sort> sorts = prepareOrderClause(
+                searchCriteria.getSortByName(),
+                searchCriteria.getSortByCreateDate()
+        );
+        Pageable sortPageable = getPageable(pageable, sorts);
+        Page<GiftCertificate> certificatePage = certificateRepository.findAll(specification, sortPageable);
+        return certificatePage.getContent();
+    }
+
+    private Pageable getPageable(Pageable pageable, List<Sort> sorts) {
+        if (sorts == null || sorts.isEmpty()) {
+            return pageable;
+        }
+        Sort sort = createSort(sorts);
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
+
+    private Sort createSort(List<Sort> sorts) {
+        Sort finalSort = sorts.get(0);
+        for (Sort sort : sorts) {
+            finalSort = finalSort.and(sort);
+        }
+        return finalSort;
+    }
+
+    private Specification<GiftCertificate> prepareWhereClause(
+            String certificateName,
+            String certificateDescription,
+            Set<String> tags
+    ) {
+        List<Specification<GiftCertificate>> specifications = new ArrayList<>();
+        if (tags == null || !tags.isEmpty()) {
+            specifications.add(GiftCertificateSpecification.certificateTagsIn(tags));
+        }
+        if (!StringUtils.isEmpty(certificateName)) {
+            specifications.add(GiftCertificateSpecification.certificateNameLike(certificateName));
+        }
+        if (!StringUtils.isEmpty(certificateDescription)) {
+            specifications.add(GiftCertificateSpecification.certificateDescriptionLike(certificateDescription));
+        }
+
+        return createSpecification(specifications);
+    }
+
+    private Specification<GiftCertificate> createSpecification(List<Specification<GiftCertificate>> specifications) {
+        if (specifications.isEmpty()) {
+            return null;
+        }
+        Specification<GiftCertificate> finalSpecification = specifications.get(0);
+        for (Specification<GiftCertificate> specification : specifications) {
+            finalSpecification = finalSpecification.and(specification);
+        }
+        return finalSpecification;
+    }
+
+    private List<Sort> prepareOrderClause(
+            String sortByName,
+            String sortByDate
+    ) {
+        List<Sort> sorts = new ArrayList<>();
+        if (!StringUtils.isEmpty(sortByDate)) {
+            sorts.add(Sort.by(getSortDirection(sortByDate), CREATE_DATE));
+        }
+        if (!StringUtils.isEmpty(sortByName)) {
+            sorts.add(Sort.by(getSortDirection(sortByName), NAME));
+        }
+        return sorts;
+    }
+
+    private Sort.Direction getSortDirection(String value) {
+        String[] params = value.split(SORT_DELIMITER);
+        if (params.length > 1) {
+            Sort.Direction direction = Sort.Direction
+                    .fromOptionalString(params[1])
+                    .orElse(Sort.Direction.ASC);
+            log.debug("Sort direction: {}", direction);
+            return direction;
+        }
+        log.debug("Standard sorting (ASC) was used.");
+        return Sort.Direction.ASC;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public GiftCertificateDto findById(long id)
+    public GiftCertificate findById(long id)
             throws GiftCertificateNotFoundException {
-        GiftCertificate byId = giftCertificateDao.findById(id)
-                .orElseThrow(() -> new GiftCertificateNotFoundException(id));
-        return giftCertificateMapper.toDto(byId);
+        return certificateRepository.findById(id)
+                .orElseThrow(() ->
+                        new GiftCertificateNotFoundException(String.format(translator.toLocale("error.notFound.certificate"), id)));
     }
 
     @Override
     @Transactional
-    public GiftCertificateDto create(GiftCertificateDto certificateDto) {
-        GiftCertificate giftCertificate = giftCertificateMapper.toModel(certificateDto);
-        Set<Tag> tags = fillCertificateTags(giftCertificate);
-        giftCertificate.setTags(tags);
-        giftCertificate.setCreateDate(ZonedDateTime.now());
-        giftCertificate.setAvailable(true);
-        GiftCertificate createdCertificate = giftCertificateDao.save(giftCertificate);
-        return giftCertificateMapper.toDto(createdCertificate);
+    public GiftCertificate create(GiftCertificate certificate) {
+        fillCertificateTags(certificate);
+        return certificateRepository.save(certificate);
     }
 
     @Override
     @Transactional
-    public GiftCertificateDto update(GiftCertificateDto certificateDto)
+    public GiftCertificate update(GiftCertificate newCertificate)
             throws GiftCertificateNotFoundException {
-        Optional<GiftCertificate> certificateOptional = giftCertificateDao.findById(certificateDto.getId());
-        if (!certificateOptional.isPresent()) {
-            throw new GiftCertificateNotFoundException(certificateDto.getId());
-        }
-        GiftCertificate certificate = prepareCertificateForUpdate(certificateDto);
-        GiftCertificate certificateToUpdate = certificateOptional.get();
-        BeanUtils.copyProperties(certificate, certificateToUpdate, getNullPropertyNames(certificate));
-        giftCertificateDao.update(certificateToUpdate);
-        log.debug("Updated certificate {}", certificateToUpdate);
-        return giftCertificateMapper.toDto(certificateToUpdate);
-    }
-
-    private GiftCertificate prepareCertificateForUpdate(GiftCertificateDto certificateDto) {
-        GiftCertificate giftCertificate = giftCertificateMapper.toModel(certificateDto);
-        Set<Tag> tags = fillCertificateTags(giftCertificate);
-        giftCertificate.setTags(tags);
-        giftCertificate.setLastUpdateDate(ZonedDateTime.now());
-        return giftCertificate;
+        GiftCertificate existedCertificate = findById(newCertificate.getId());
+        fillCertificateTags(newCertificate);
+        BeanUtils.copyProperties(newCertificate, existedCertificate, getNullPropertyNames(newCertificate));
+        certificateRepository.save(existedCertificate);
+        return existedCertificate;
     }
 
     private String[] getNullPropertyNames(Object source) {
@@ -100,27 +170,22 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
                 .toArray(String[]::new);
     }
 
-    private Set<Tag> fillCertificateTags(GiftCertificate certificate) {
+    private void fillCertificateTags(GiftCertificate certificate) {
         Set<Tag> tags = certificate.getTags();
         if (tags == null) {
-            return null;
+            return;
         }
-        Set<Tag> newCertificateTags = new HashSet<>();
+        Set<Tag> certificateTags = new HashSet<>();
         tags.forEach(tag -> {
-            Optional<Tag> existedTag = tagDao.findByName(tag.getName());
-            if (existedTag.isPresent()) {
-                newCertificateTags.add(existedTag.get());
-            } else {
-                newCertificateTags.add(tag);
-            }
+            Tag certificateTag = tagService.findByName(tag.getName()).orElse(tag);
+            certificateTags.add(certificateTag);
         });
-        log.debug("Certificate tags: {}", newCertificateTags);
-        return newCertificateTags;
+        certificate.setTags(certificateTags);
     }
 
     @Override
     @Transactional
     public void deleteById(long id) {
-        giftCertificateDao.deleteById(id);
+        certificateRepository.deleteById(id);
     }
 }

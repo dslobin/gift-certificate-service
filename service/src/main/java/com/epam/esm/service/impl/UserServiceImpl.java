@@ -1,16 +1,19 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.OrderDao;
-import com.epam.esm.dao.UserDao;
-import com.epam.esm.dto.TagDto;
-import com.epam.esm.dto.UserDto;
+import com.epam.esm.dto.SignUpRequest;
 import com.epam.esm.entity.*;
+import com.epam.esm.exception.EmailExistException;
+import com.epam.esm.exception.RoleNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;
-import com.epam.esm.mapper.TagMapper;
-import com.epam.esm.mapper.UserMapper;
+import com.epam.esm.repository.OrderRepository;
+import com.epam.esm.repository.UserRepository;
+import com.epam.esm.service.RoleService;
 import com.epam.esm.service.UserService;
+import com.epam.esm.util.Translator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,51 +25,77 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
-    private final UserDao userDao;
-    private final UserMapper userMapper;
-    private final OrderDao orderDao;
-    private final TagMapper tagMapper;
+    private final UserRepository userRepository;
+    private final RoleService roleService;
+    private final OrderRepository orderRepository;
+    private final Translator translator;
+
+    private static final String ROLE_USER = "ROLE_USER";
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDto> findAll(int page, int size) {
-        return userDao.findAll(page, size).stream()
-                .map(userMapper::toDto)
-                .collect(Collectors.toList());
+    public Set<User> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).get()
+                .collect(Collectors.toSet());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserDto findById(long id)
+    public User findById(long id)
             throws UserNotFoundException {
-        User user = userDao.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-        return userMapper.toDto(user);
+        return userRepository.findById(id)
+                .orElseThrow(() ->
+                        new UserNotFoundException(String.format(translator.toLocale("error.notFound.userId"), id)));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserDto findByEmail(String email) {
-        User user = userDao.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(email));
-        return userMapper.toDto(user);
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(String.format(translator.toLocale("error.notFound.userEmail"), email)));
     }
 
     @Override
     @Transactional
-    public Set<TagDto> findMostUsedUserTag(String email) {
-        User user = userDao.findByEmail(email)
+    public User create(SignUpRequest userData)
+            throws EmailExistException, RoleNotFoundException {
+        String userEmail = userData.getEmail();
+        log.debug("Trying to add a user with email: {}", userEmail);
+        Optional<User> userOptional = userRepository.findByEmail(userEmail);
+        if (userOptional.isPresent()) {
+            log.error("A user with this email: {} already exists", userEmail);
+            throw new EmailExistException(String.format(translator.toLocale("error.badRequest.emailExist"), userEmail));
+        }
+
+        User user = new User();
+
+        user.setEmail(userEmail);
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String hashedPassword = encoder.encode(userData.getPassword());
+        user.setPassword(hashedPassword);
+        user.setFirstName(userData.getFirstName());
+        user.setLastName(userData.getLastName());
+        Cart userCart = new Cart(user);
+        user.setCart(userCart);
+        Role roleUser = roleService.findByName(ROLE_USER)
+                .orElseThrow(() -> new RoleNotFoundException(String.format(translator.toLocale("error.notFound.roleName"), ROLE_USER)));
+        user.setRoles(Collections.singleton(roleUser));
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public Set<Tag> findMostUsedUserTag(String email) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
-        List<Order> orders = orderDao.findByUserEmail(user.getEmail()).stream()
+        List<Order> orders = orderRepository.findByUserEmail(user.getEmail()).stream()
                 .sorted(Comparator.comparing(Order::getPrice))
                 .collect(Collectors.toList());
         List<GiftCertificate> orderedCertificates = getOrderedCertificates(orders);
         Map<Tag, Long> tagRepetitionNumber = countTagRepetitionNumber(orderedCertificates);
         tagRepetitionNumber.forEach((k, v) -> log.debug("{} : {}", k, v));
-        Set<Tag> tags = getMostUsedTagsWithHighestOrderCost(tagRepetitionNumber, orders);
-        return tags.stream()
-                .map(tagMapper::toDto)
-                .collect(Collectors.toSet());
+        return getMostUsedTagsWithHighestOrderCost(tagRepetitionNumber, orders);
     }
 
     private Set<Tag> getMostUsedTagsWithHighestOrderCost(

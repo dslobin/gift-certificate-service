@@ -1,21 +1,28 @@
 package com.epam.esm.service;
 
-import com.epam.esm.dto.OrderDto;
+import com.epam.esm.entity.Order;
 import com.epam.esm.exception.EmptyCartException;
 import com.epam.esm.exception.OrderNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface OrderService {
     /**
-     * @param page      current page index
-     * @param size      number of items per page
+     * @param pageable  pagination information index
      * @param userEmail unique identifier of the specified user
      * @return orders of the specified user
      * @throws UserNotFoundException if the user with the specified email doesn't exist
      */
-    List<OrderDto> findUserOrders(int page, int size, String userEmail);
+    List<Order> findUserOrders(String userEmail, Pageable pageable);
+
+    /**
+     * @param userEmail unique identifier of the specified user
+     * @return orders of the specified user
+     * @throws UserNotFoundException if the user with the specified email doesn't exist
+     */
+    List<Order> findUserOrders(String userEmail);
 
     /**
      * @param userEmail unique identifier of the specified user
@@ -23,7 +30,7 @@ public interface OrderService {
      * @return order of the specified user and id
      * @throws OrderNotFoundException if the order with the specified user email and order id doesn't exist
      */
-    OrderDto findUserOrder(String userEmail, long orderId);
+    Order findUserOrder(String userEmail, long orderId);
 
     /**
      * Creates new order for the specified user.
@@ -33,5 +40,5 @@ public interface OrderService {
      * @throws EmptyCartException    if the specified user cart is empty
      * @throws UserNotFoundException if the user with the specified email doesn't exist
      */
-    OrderDto createUserOrder(String userEmail);
+    Order createUserOrder(String userEmail);
 }
