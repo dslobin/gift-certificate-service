@@ -13,6 +13,7 @@ import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -44,5 +45,5 @@ public class GiftCertificateDto extends RepresentationModel<GiftCertificateDto> 
     @Max(value = 1826)
     private long durationInDays;
 
-    private Set<TagDto> tags;
+    private Set<TagDto> tags = new HashSet<>();
 }

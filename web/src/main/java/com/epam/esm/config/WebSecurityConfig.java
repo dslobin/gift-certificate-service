@@ -33,15 +33,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.httpBasic().disable().csrf().disable()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
                 .authorizeRequests()
-                    .antMatchers("/api/orders/**").permitAll()
-                    .antMatchers("/api/certificates/**").permitAll()
-                    .antMatchers("/api/cart/**").permitAll()
-                    .antMatchers("/api/auth/**").permitAll()
-                    .antMatchers("/api/users/**").hasRole("ADMIN")
-                    .anyRequest().authenticated()
-                    .and().apply(new JwtConfigurer(jwtTokenProvider));
+                .antMatchers("/api/orders/**").permitAll()
+                .antMatchers("/api/certificates/**").permitAll()
+                .antMatchers("/api/cart/**").permitAll()
+                .antMatchers("/api/auth/**").permitAll()
+                .antMatchers("/api/users/**").permitAll()
+                .anyRequest().authenticated()
+                .and().apply(new JwtConfigurer(jwtTokenProvider));
     }
 }
