@@ -1,123 +1,87 @@
 package com.epam.esm.service.config;
 
-import com.epam.esm.dao.*;
-import com.epam.esm.mapper.*;
-import com.epam.esm.mapper.impl.*;
+import com.epam.esm.config.ResourceBundleConfig;
+import com.epam.esm.repository.*;
 import com.epam.esm.service.*;
 import com.epam.esm.service.impl.*;
+import com.epam.esm.util.Translator;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import({ResourceBundleConfig.class, Translator.class})
 public class ServiceContextTest {
+    @Autowired
+    private Translator translator;
 
     /**
-     * DAO Beans
+     * Repositories
      */
 
     @Bean
-    public TagDao tagDao() {
-        return Mockito.mock(TagDao.class);
+    public RoleRepository roleRepository() {
+        return Mockito.mock(RoleRepository.class);
     }
 
     @Bean
-    public GiftCertificateDao giftCertificateDao() {
-        return Mockito.mock(GiftCertificateDao.class);
+    public UserRepository userRepository() {
+        return Mockito.mock(UserRepository.class);
     }
 
     @Bean
-    public UserDao userDao() {
-        return Mockito.mock(UserDao.class);
+    public TagRepository tagRepository() {
+        return Mockito.mock(TagRepository.class);
     }
 
     @Bean
-    public OrderDao orderDao() {
-        return Mockito.mock(OrderDao.class);
+    public CartRepository cartRepository() {
+        return Mockito.mock(CartRepository.class);
     }
 
     @Bean
-    public CartDao cartDao() {
-        return Mockito.mock(CartDao.class);
-    }
-
-    /**
-     * Mapper Beans
-     */
-
-    @Bean
-    public TagMapper tagMapper() {
-        return new TagMapperImpl();
+    public OrderRepository orderRepository() {
+        return Mockito.mock(OrderRepository.class);
     }
 
     @Bean
-    public GiftCertificateMapper giftCertificateMapper() {
-        return new GiftCertificateMapperImpl();
-    }
-
-    @Bean
-    public OrderMapper orderMapper() {
-        return new OrderMapperImpl();
-    }
-
-    @Bean
-    public UserMapper userMapper() {
-        return new UserMapperImpl();
-    }
-
-    @Bean
-    public CartMapper cartMapper() {
-        return new CartMapperImpl();
+    public GiftCertificateRepository giftCertificateRepository() {
+        return Mockito.mock(GiftCertificateRepository.class);
     }
 
     /**
-     * Service Beans
+     * Services
      */
 
     @Bean
-    public CartService cartService(
-            CartDao cartDao,
-            CartMapper cartMapper,
-            UserDao userDao,
-            GiftCertificateDao certificateDao
-    ) {
-        return new CartServiceImpl(cartDao, cartMapper, userDao, certificateDao);
+    public TagService tagService(TagRepository tagRepository) {
+        return new TagServiceImpl(tagRepository, translator);
     }
 
     @Bean
-    public OrderService orderService(
-            OrderDao orderDao,
-            OrderMapper orderMapper,
-            UserDao userDao,
-            CartDao cartDao
-    ) {
-        return new OrderServiceImpl(orderDao, orderMapper, userDao, cartDao);
+    public RoleService roleService(RoleRepository roleRepository) {
+        return new RoleServiceImpl(roleRepository);
     }
 
     @Bean
-    public UserService userService(
-            UserDao userDao,
-            UserMapper userMapper,
-            OrderDao orderDao,
-            TagMapper tagMapper
-    ) {
-        return new UserServiceImpl(userDao, userMapper, orderDao, tagMapper);
+    public UserService userService(UserRepository userRepository, RoleService roleService, OrderRepository orderRepository) {
+        return new UserServiceImpl(userRepository, roleService, orderRepository, translator);
     }
 
     @Bean
-    public GiftCertificateService giftCertificateService(
-            GiftCertificateDao giftCertificateDao,
-            TagDao tagDao,
-            GiftCertificateMapper giftCertificateMapper
-    ) {
-        return new GiftCertificateServiceImpl(giftCertificateDao, tagDao, giftCertificateMapper);
+    public GiftCertificateService giftCertificateService(GiftCertificateRepository certificateRepository, TagService tagService) {
+        return new GiftCertificateServiceImpl(certificateRepository, tagService, translator);
     }
 
     @Bean
-    public TagService tagService(
-            TagDao tagDao,
-            TagMapper tagMapper
-    ) {
-        return new TagServiceImpl(tagDao, tagMapper);
+    public CartService cartService(CartRepository cartRepository, UserService userService, GiftCertificateService certificateService) {
+        return new CartServiceImpl(cartRepository, userService, certificateService);
+    }
+
+    @Bean
+    public OrderService orderService(OrderRepository orderRepository, UserService userService, CartService cartService) {
+        return new OrderServiceImpl(orderRepository, userService, cartService, translator);
     }
 }

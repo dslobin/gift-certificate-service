@@ -1,24 +1,28 @@
 package com.epam.esm.service.impl;
 
-import com.epam.esm.dao.TagDao;
-import com.epam.esm.dto.TagDto;
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.TagNotFoundException;
+import com.epam.esm.repository.TagRepository;
 import com.epam.esm.service.TagService;
 import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -27,36 +31,38 @@ import static org.mockito.Mockito.*;
 @ContextConfiguration(classes = ServiceContextTest.class)
 class TagServiceImplTest {
     @Autowired
-    private TagDao tagDao;
+    private TagRepository tagRepository;
     @Autowired
     private TagService tagService;
 
     @Test
-    void givenTagDto_whenSave_thenGetOk() {
-        Tag tag = new Tag(1L, "quests", null);
+    void givenTag_whenSave_thenGetOk() {
+        Tag createdTag = new Tag(1L, "quests", null);
 
-        given(tagDao.save(any(Tag.class))).willReturn(tag);
+        given(tagRepository.save(any(Tag.class))).willReturn(createdTag);
 
-        TagDto tagDto = new TagDto(1L, "quests");
+        Tag tag = new Tag(0L, "quests", null);
 
-        TagDto savedTag = tagService.create(tagDto);
+        Tag savedTag = tagService.create(tag);
         assertThat(savedTag).isNotNull();
-        assertEquals(tag.getName(), savedTag.getName());
+        assertEquals(createdTag.getName(), savedTag.getName());
     }
 
     @Test
     void givenTags_whenFindAll_thenGetCorrectTagSize() {
-        Set<Tag> tags = Stream.of(
+        List<Tag> tags = Stream.of(
                 new Tag(1L, "fitness_and_sports", null),
                 new Tag(2L, "beauty_salon_service", null),
                 new Tag(3L, "travel", null)
-        ).collect(Collectors.toSet());
+        ).collect(Collectors.toList());
 
-        int page = 1;
-        int size = 5;
-        doReturn(tags).when(tagDao).findAll(page, size);
+        int page = 0;
+        int size = Integer.MAX_VALUE;
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Tag> tagPage = new PageImpl<>(tags, pageable, tags.size());
+        doReturn(tagPage).when(tagRepository).findAll(pageable);
 
-        Set<TagDto> actualTags = tagService.findAll(page, size);
+        Set<Tag> actualTags = tagService.findAll(pageable);
         int expectedTagsSize = tags.size();
         int actualTagsSize = actualTags.size();
         assertEquals(expectedTagsSize, actualTagsSize);
@@ -67,9 +73,9 @@ class TagServiceImplTest {
         long tagId = 1L;
         Tag tag = new Tag(1L, "exclusive", null);
 
-        given(tagDao.findById(tagId)).willReturn(Optional.of(tag));
+        given(tagRepository.findById(tagId)).willReturn(Optional.of(tag));
 
-        TagDto actualTag = tagService.findById(tagId);
+        Tag actualTag = tagService.findById(tagId);
 
         assertThat(actualTag).isNotNull();
         assertEquals(tag.getId(), actualTag.getId());
@@ -79,14 +85,25 @@ class TagServiceImplTest {
     void givenTag_whenFindByName_thenGetCorrectTag() {
         long tagId = 1L;
         String tagName = "exclusive";
-        Tag tag = new Tag(tagId, tagName, null);
+        Tag createdTag = new Tag(tagId, tagName, null);
 
-        given(tagDao.findByName(tagName)).willReturn(Optional.of(tag));
+        given(tagRepository.findByName(tagName)).willReturn(Optional.of(createdTag));
 
-        TagDto actualTag = tagService.findByName(tagName);
+        Optional<Tag> tagOptional = tagService.findByName(tagName);
+        assertTrue(tagOptional.isPresent());
 
-        assertThat(actualTag).isNotNull();
-        assertEquals(tag.getName(), actualTag.getName());
+        Tag actualTag = tagOptional.get();
+        assertEquals(createdTag.getName(), actualTag.getName());
+    }
+
+    @Test
+    void givenTagId_whenFindById_thenThrowTagNotFoundException() {
+        long tagId = 1L;
+        given(tagRepository.findById(tagId)).willReturn(Optional.empty());
+
+        assertThrows(TagNotFoundException.class, () -> {
+            tagService.findById(tagId);
+        });
     }
 
     @Test
@@ -96,6 +113,6 @@ class TagServiceImplTest {
         tagService.deleteById(tagId);
 
         int wantedNumberOfInvocations = 1;
-        verify(tagDao, times(wantedNumberOfInvocations)).deleteById(tagId);
+        verify(tagRepository, times(wantedNumberOfInvocations)).deleteById(tagId);
     }
 }
