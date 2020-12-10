@@ -1,13 +1,15 @@
 package com.epam.esm.controller;
 
-
 import com.epam.esm.dto.CartDto;
 import com.epam.esm.dto.CartItemDto;
 import com.epam.esm.dto.UserDto;
+import com.epam.esm.entity.Cart;
 import com.epam.esm.exception.GiftCertificateNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;
+import com.epam.esm.mapper.CartMapper;
 import com.epam.esm.service.CartService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +17,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
+@Slf4j
 public class CartController {
     private final CartService cartService;
+    private final CartMapper cartMapper;
 
     /**
      * Viewing the cart.
@@ -28,10 +32,10 @@ public class CartController {
             @RequestBody UserDto userDto
     ) throws UserNotFoundException {
         String userEmail = userDto.getEmail();
-        CartDto cart = cartService.getCartOrCreate(userEmail);
+        Cart cart = cartService.getCartOrCreate(userEmail);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(cart);
+                .body(cartMapper.toDto(cart));
     }
 
     /**
@@ -45,14 +49,14 @@ public class CartController {
     public ResponseEntity<CartDto> addItem(
             @RequestBody CartItemDto item
     ) throws GiftCertificateNotFoundException, UserNotFoundException {
-        CartDto cart = cartService.addToCart(
+        Cart cart = cartService.addToCart(
                 item.getUserEmail(),
                 item.getCertificateId(),
                 item.getQuantity()
         );
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(cart);
+                .body(cartMapper.toDto(cart));
     }
 
     /**
@@ -66,9 +70,9 @@ public class CartController {
             @RequestBody UserDto userDto
     ) throws UserNotFoundException {
         String userEmail = userDto.getEmail();
-        CartDto clearedCart = cartService.clearCart(userEmail);
+        Cart clearedCart = cartService.clearCart(userEmail);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(clearedCart);
+                .body(cartMapper.toDto(clearedCart));
     }
 }

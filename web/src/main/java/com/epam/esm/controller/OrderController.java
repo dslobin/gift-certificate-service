@@ -2,11 +2,16 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dto.OrderDto;
 import com.epam.esm.dto.UserDto;
+import com.epam.esm.entity.Order;
 import com.epam.esm.exception.EmptyCartException;
 import com.epam.esm.exception.OrderNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;
+import com.epam.esm.mapper.OrderMapper;
 import com.epam.esm.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -25,6 +31,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Validated
 public class OrderController {
     private final OrderService orderService;
+    private final OrderMapper orderMapper;
+
+    @Value("${pagination.defaultPageValue}")
+    private Integer defaultPage;
+    @Value("${pagination.maxElementsOnPage}")
+    private Integer maxElementsOnPage;
 
     /**
      * View orders.
@@ -34,15 +46,16 @@ public class OrderController {
      */
     @GetMapping
     public ResponseEntity<List<OrderDto>> getOrders(
-            @Min(1) @RequestParam(required = false, defaultValue = "1") Integer page,
-            @Min(5) @Max(100) @RequestParam(required = false, defaultValue = "10") Integer size,
+            @RequestParam(required = false, defaultValue = "${pagination.defaultPageValue}") Integer page,
+            @Min(5) @Max(100) @RequestParam(required = false, defaultValue = "${pagination.maxElementsOnPage}") Integer size,
             @RequestBody UserDto userDto
     ) throws UserNotFoundException {
         String userEmail = userDto.getEmail();
-        List<OrderDto> orders = orderService.findUserOrders(page, size, userEmail);
-        orders.forEach(order -> order.add(linkTo(methodOn(OrderController.class)
-                .getOrder(order.getOrderId(), userDto))
-                .withSelfRel()));
+        Pageable pageable = PageRequest.of(page, size);
+        List<OrderDto> orders = orderService.findUserOrders(userEmail, pageable).stream()
+                .map(orderMapper::toDto)
+                .collect(Collectors.toList());
+        orders.forEach(order -> order.add(linkTo(methodOn(OrderController.class).getOrder(order.getOrderId(), userDto)).withSelfRel()));
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(orders);
@@ -60,10 +73,15 @@ public class OrderController {
             @RequestBody UserDto userDto
     ) {
         String userEmail = userDto.getEmail();
-        OrderDto order = orderService.findUserOrder(userEmail, id);
+        Order order = orderService.findUserOrder(userEmail, id);
+        OrderDto orderDto = orderMapper.toDto(order);
+        orderDto.add(
+                linkTo(methodOn(OrderController.class).getOrders(defaultPage, maxElementsOnPage, userDto)).withRel("userOrders"),
+                linkTo(methodOn(OrderController.class).getOrder(id, userDto)).withSelfRel()
+        );
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(order);
+                .body(orderDto);
     }
 
     /**
@@ -78,9 +96,9 @@ public class OrderController {
             @RequestBody UserDto userDto
     ) throws EmptyCartException {
         String userEmail = userDto.getEmail();
-        OrderDto order = orderService.createUserOrder(userEmail);
+        Order order = orderService.createUserOrder(userEmail);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(order);
+                .body(orderMapper.toDto(order));
     }
 }

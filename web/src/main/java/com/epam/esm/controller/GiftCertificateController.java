@@ -2,10 +2,15 @@ package com.epam.esm.controller;
 
 import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.dto.GiftCertificateDto;
+import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.exception.GiftCertificateNotFoundException;
+import com.epam.esm.mapper.GiftCertificateMapper;
 import com.epam.esm.service.GiftCertificateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +20,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -26,6 +32,12 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Slf4j
 public class GiftCertificateController {
     private final GiftCertificateService giftCertificateService;
+    private final GiftCertificateMapper certificateMapper;
+
+    @Value("${pagination.defaultPageValue}")
+    private Integer defaultPage;
+    @Value("${pagination.maxElementsOnPage}")
+    private Integer maxElementsOnPage;
 
     /**
      * View gift certificates.
@@ -34,12 +46,15 @@ public class GiftCertificateController {
      */
     @GetMapping
     public ResponseEntity<List<GiftCertificateDto>> getCertificates(
-            @Min(1) @RequestParam(required = false, defaultValue = "1") Integer page,
-            @Min(5) @Max(100) @RequestParam(required = false, defaultValue = "10") Integer size,
+            @RequestParam(required = false, defaultValue = "${pagination.defaultPageValue}") Integer page,
+            @Min(5) @Max(100) @RequestParam(required = false, defaultValue = "${pagination.maxElementsOnPage}") Integer size,
             CertificateSearchCriteria searchCriteria
     ) {
         log.debug("Certificate search criteria params: {}", searchCriteria);
-        List<GiftCertificateDto> certificates = giftCertificateService.findAll(page, size, searchCriteria);
+        Pageable pageable = PageRequest.of(page, size);
+        List<GiftCertificateDto> certificates = giftCertificateService.findAll(searchCriteria, pageable).stream()
+                .map(certificateMapper::toDto)
+                .collect(Collectors.toList());
         certificates.forEach(certificate -> certificate.add(linkTo(methodOn(GiftCertificateController.class)
                 .getCertificate(certificate.getId()))
                 .withSelfRel()));
@@ -57,10 +72,15 @@ public class GiftCertificateController {
     @GetMapping("/{id}")
     public ResponseEntity<GiftCertificateDto> getCertificate(@Min(1) @PathVariable Long id)
             throws GiftCertificateNotFoundException {
-        GiftCertificateDto certificateDto = giftCertificateService.findById(id);
-        certificateDto.add(linkTo(methodOn(GiftCertificateController.class)
-                .getCertificates(1, 10, null))
-                .withRel("certificates"));
+        GiftCertificateDto certificateDto = certificateMapper.toDto(giftCertificateService.findById(id));
+        certificateDto.add(
+                linkTo(methodOn(GiftCertificateController.class)
+                        .getCertificates(defaultPage, maxElementsOnPage, null))
+                        .withRel("certificates"),
+                linkTo(methodOn(GiftCertificateController.class)
+                        .getCertificate(certificateDto.getId()))
+                        .withSelfRel()
+        );
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(certificateDto);
@@ -72,11 +92,14 @@ public class GiftCertificateController {
      * @return created gift certificate
      */
     @PostMapping
-    public ResponseEntity<GiftCertificateDto> createCertificate(@Valid @RequestBody GiftCertificateDto certificateDto) {
-        GiftCertificateDto createdCertificate = giftCertificateService.create(certificateDto);
+    public ResponseEntity<GiftCertificateDto> createCertificate(
+            @Valid @RequestBody GiftCertificateDto certificateDto
+    ) {
+        GiftCertificate giftCertificate = certificateMapper.toModel(certificateDto);
+        GiftCertificate createdCertificate = giftCertificateService.create(giftCertificate);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(createdCertificate);
+                .body(certificateMapper.toDto(createdCertificate));
     }
 
     /**
@@ -88,10 +111,11 @@ public class GiftCertificateController {
     @PutMapping
     public ResponseEntity<GiftCertificateDto> updateCertificate(@Valid @RequestBody GiftCertificateDto certificateDto)
             throws GiftCertificateNotFoundException {
-        GiftCertificateDto updatedCertificate = giftCertificateService.update(certificateDto);
+        GiftCertificate giftCertificate = certificateMapper.toModel(certificateDto);
+        GiftCertificate updatedCertificate = giftCertificateService.update(giftCertificate);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(updatedCertificate);
+                .body(certificateMapper.toDto(updatedCertificate));
     }
 
     /**
@@ -103,8 +127,8 @@ public class GiftCertificateController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCertificate(@Min(1) @PathVariable Long id)
             throws GiftCertificateNotFoundException {
-        GiftCertificateDto certificateDto = giftCertificateService.findById(id);
-        giftCertificateService.deleteById(certificateDto.getId());
+        GiftCertificate certificate = giftCertificateService.findById(id);
+        giftCertificateService.deleteById(certificate.getId());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
