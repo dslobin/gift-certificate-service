@@ -17,8 +17,10 @@ public interface CartMapper {
     @Mapping(target = "cartItems", source = "items")
     CartDto toDto(Cart cart);
 
-    @Mapping(target = "certificateId", source = "giftCertificate.id")
-    @Mapping(target = "userEmail", source = "cart.user.email")
+    @Mapping(
+            target = "giftCertificate.durationInDays",
+            expression = "java( giftCertificate.getDuration() == null ? 0 : giftCertificate.getDuration().toDays() )"
+    )
     CartItemDto toCartItemDto(CartItem cartItem);
 
     List<CartItemDto> toCartItemDtoList(Set<CartItem> items);
