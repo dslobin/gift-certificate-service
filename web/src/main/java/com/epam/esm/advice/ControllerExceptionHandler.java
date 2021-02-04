@@ -1,6 +1,7 @@
 package com.epam.esm.advice;
 
 import com.epam.esm.exception.*;
+import com.epam.esm.security.jwt.JwtAuthenticationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// TODO: 11.12.2020 локализация
 @RestControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -179,6 +181,24 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(JwtAuthenticationException.class)
+    public ResponseEntity<Object> handleJwtAuthenticationException(
+            JwtAuthenticationException e,
+            WebRequest request
+    ) {
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(ZonedDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message(e.getMessage())
+                .errorCode(getErrorCode(HttpStatus.UNAUTHORIZED, ResourceCode.USER_ACCOUNT))
+                .path(request.getDescription(false))
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Object> handleConstraintViolationException(
             ConstraintViolationException e,
@@ -234,7 +254,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
      * @see HttpStatus
      * @see ResourceCode
      */
-    private int getErrorCode(HttpStatus status, ResourceCode resourceCode) {
+    public static int getErrorCode(HttpStatus status, ResourceCode resourceCode) {
         String errorCode = String.valueOf(status.value()) + resourceCode.value();
         return Integer.parseInt(errorCode);
     }
