@@ -1,7 +1,6 @@
 package com.epam.esm.controller;
 
 import com.epam.esm.dto.OrderDto;
-import com.epam.esm.dto.UserDto;
 import com.epam.esm.entity.Order;
 import com.epam.esm.exception.EmptyCartException;
 import com.epam.esm.exception.OrderNotFoundException;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,14 +48,14 @@ public class OrderController {
     public ResponseEntity<List<OrderDto>> getOrders(
             @RequestParam(required = false, defaultValue = "${pagination.defaultPageValue}") Integer page,
             @Min(5) @Max(100) @RequestParam(required = false, defaultValue = "${pagination.maxElementsOnPage}") Integer size,
-            @RequestBody UserDto userDto
+            Principal principal
     ) throws UserNotFoundException {
-        String userEmail = userDto.getEmail();
+        String userEmail = principal.getName();
         Pageable pageable = PageRequest.of(page, size);
         List<OrderDto> orders = orderService.findUserOrders(userEmail, pageable).stream()
                 .map(orderMapper::toDto)
                 .collect(Collectors.toList());
-        orders.forEach(order -> order.add(linkTo(methodOn(OrderController.class).getOrder(order.getOrderId(), userDto)).withSelfRel()));
+        orders.forEach(order -> order.add(linkTo(methodOn(OrderController.class).getOrder(order.getOrderId(), principal)).withSelfRel()));
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(orders);
@@ -70,14 +70,14 @@ public class OrderController {
     @GetMapping("/{id}")
     public ResponseEntity<OrderDto> getOrder(
             @Min(1) @PathVariable Long id,
-            @RequestBody UserDto userDto
+            Principal principal
     ) {
-        String userEmail = userDto.getEmail();
+        String userEmail = principal.getName();
         Order order = orderService.findUserOrder(userEmail, id);
         OrderDto orderDto = orderMapper.toDto(order);
         orderDto.add(
-                linkTo(methodOn(OrderController.class).getOrders(defaultPage, maxElementsOnPage, userDto)).withRel("userOrders"),
-                linkTo(methodOn(OrderController.class).getOrder(id, userDto)).withSelfRel()
+                linkTo(methodOn(OrderController.class).getOrders(defaultPage, maxElementsOnPage, principal)).withRel("userOrders"),
+                linkTo(methodOn(OrderController.class).getOrder(id, principal)).withSelfRel()
         );
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -93,9 +93,9 @@ public class OrderController {
      */
     @PostMapping("/payment")
     public ResponseEntity<OrderDto> createOrder(
-            @RequestBody UserDto userDto
+            Principal principal
     ) throws EmptyCartException {
-        String userEmail = userDto.getEmail();
+        String userEmail = principal.getName();
         Order order = orderService.createUserOrder(userEmail);
         return ResponseEntity
                 .status(HttpStatus.OK)

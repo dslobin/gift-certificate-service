@@ -53,6 +53,7 @@ public class AuthenticationController {
     public ResponseEntity<UserDto> signUp(@RequestBody SignUpRequest signUpRequest)
             throws EmailExistException {
         User createdUser = authService.signUp(signUpRequest);
+        log.debug("User successfully registered: {}", createdUser);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userMapper.toDto(createdUser));

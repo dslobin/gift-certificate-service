@@ -17,7 +17,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,11 +46,12 @@ public class GiftCertificateController {
     @GetMapping
     public ResponseEntity<List<GiftCertificateDto>> getCertificates(
             @RequestParam(required = false, defaultValue = "${pagination.defaultPageValue}") Integer page,
-            @Min(5) @Max(100) @RequestParam(required = false, defaultValue = "${pagination.maxElementsOnPage}") Integer size,
+            @Min(5) @RequestParam(required = false, defaultValue = "${pagination.maxElementsOnPage}") Integer size,
             CertificateSearchCriteria searchCriteria
     ) {
         log.debug("Certificate search criteria params: {}", searchCriteria);
         Pageable pageable = PageRequest.of(page, size);
+        log.debug("Search {} certificates on page # {}", size, page);
         List<GiftCertificateDto> certificates = giftCertificateService.findAll(searchCriteria, pageable).stream()
                 .map(certificateMapper::toDto)
                 .collect(Collectors.toList());
