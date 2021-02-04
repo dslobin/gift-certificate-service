@@ -1,7 +1,7 @@
 package com.epam.esm.controller;
 
-import com.epam.esm.dto.RoleDto;
-import com.epam.esm.dto.UserDto;
+import com.epam.esm.entity.Role;
+import com.epam.esm.entity.User;
 import com.epam.esm.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
@@ -9,14 +9,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,7 +29,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-@WebMvcTest(UserController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class UserControllerTest {
     @MockBean
     private UserService userService;
@@ -36,46 +39,47 @@ class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final int PAGE = 1;
-    private static final int SIZE = 5;
     private static final String PARAM_PAGE = "page";
     private static final String PARAM_SIZE = "size";
 
     @Test
+    @WithMockUser(username = "test", password = "test", roles = "ADMIN")
     void givenUsers_whenGetAll_thenGetCorrectCount() throws Exception {
-        Set<RoleDto> roles = Stream.of(
-                new RoleDto(1L, "USER")
+        Set<Role> roles = Stream.of(
+                new Role(1L, "USER", null)
+        ).collect(Collectors.toSet());
+        Set<User> users = Stream.of(
+                new User(1L, "jared.mccarthy@mail.com", "123456", "Jared", "Mccarthy", null, roles, true),
+                new User(2L, "hanna.robbins@mail.com", "123456", "Hanna", "Robbins", null, roles, true),
+                new User(3L, "emilia.malone@mail.com", "123456", "Emilia", "Malone", null, roles, true)
         ).collect(Collectors.toSet());
 
-        List<UserDto> users = Stream.of(
-                new UserDto(1L, "jared.mccarthy@mail.com", "123456", roles),
-                new UserDto(2L, "hanna.robbins@mail.com", "123456", roles),
-                new UserDto(3L, "emilia.malone@mail.com", "123456", roles)
-        ).collect(Collectors.toList());
+        int page = 0;
+        int size = 100;
+        PageRequest pageable = PageRequest.of(page, size);
 
-        when(userService.findAll(PAGE, SIZE)).thenReturn(users);
+        when(userService.findAll(pageable)).thenReturn(users);
 
         mockMvc.perform(get("/api/users")
-                .param(PARAM_PAGE, String.valueOf(PAGE))
-                .param(PARAM_SIZE, String.valueOf(SIZE)))
+                .param(PARAM_PAGE, String.valueOf(page))
+                .param(PARAM_SIZE, String.valueOf(size)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", Matchers.hasSize(3)));
     }
 
     @Test
+    @WithMockUser(username = "test", password = "test", roles = "ADMIN")
     void givenUserId_whenGetUserById_thenReturnCorrectUser() throws Exception {
-        Set<RoleDto> roles = Stream.of(
-                new RoleDto(1L, "USER"),
-                new RoleDto(2L, "ADMIN")
+        Set<Role> roles = Stream.of(
+                new Role(1L, "USER", null)
         ).collect(Collectors.toSet());
+        User user = new User(1L, "jared.mccarthy@mail.com", "123456", "Jared", "Mccarthy", null, roles, true);
 
-        UserDto userDto = new UserDto(1L, "jared.mccarthy@mail.com", "123456", roles);
+        when(userService.findById(any(Long.class))).thenReturn(user);
 
-        when(userService.findById(any(Long.class))).thenReturn(userDto);
-
-        long userId = userDto.getId();
-        String userEmail = userDto.getEmail();
+        long userId = user.getId();
+        String userEmail = user.getEmail();
         mockMvc.perform(get("/api/users/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON))
