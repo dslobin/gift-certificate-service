@@ -1,6 +1,7 @@
 package com.epam.esm.service.impl;
 
 import com.epam.esm.entity.Tag;
+import com.epam.esm.exception.NameAlreadyExistException;
 import com.epam.esm.exception.TagNotFoundException;
 import com.epam.esm.repository.TagRepository;
 import com.epam.esm.service.TagService;
@@ -94,6 +95,19 @@ class TagServiceImplTest {
 
         Tag actualTag = tagOptional.get();
         assertEquals(createdTag.getName(), actualTag.getName());
+    }
+
+    @Test
+    void givenTag_whenCreate_thenGetNameAlreadyExistException() {
+        long tagId = 1L;
+        String tagName = "exclusive";
+        Tag createdTag = new Tag(tagId, tagName, null);
+
+        given(tagRepository.findByName(tagName)).willReturn(Optional.of(createdTag));
+
+        assertThrows(NameAlreadyExistException.class, () -> {
+            tagService.create(createdTag);
+        });
     }
 
     @Test

@@ -42,7 +42,7 @@ class OrderServiceImplTest {
     private OrderService orderService;
 
     @Test
-    void givenOrders_whenFindAllByUserEmail_thenGetCorrectOrdersSize() {
+    void givenOrders_whenFindAllByUserEmailPaginated_thenGetCorrectOrdersSize() {
         Set<Role> roles = Stream.of(new Role(1L, "USER", null)).collect(Collectors.toSet());
         User user = new User(1L, "jared.mccarthy@mail.com", "123456", "Jared", "Mccarthy", null, roles, true);
         List<OrderItem> orderItems = new ArrayList<>();
@@ -59,6 +59,26 @@ class OrderServiceImplTest {
         doReturn(orders).when(orderRepository).findByUserEmail(userEmail, pageable);
 
         List<Order> actualOrders = orderService.findUserOrders(userEmail, pageable);
+        int expectedOrdersSize = orders.size();
+        int actualOrdersSize = actualOrders.size();
+        assertEquals(expectedOrdersSize, actualOrdersSize);
+    }
+
+    @Test
+    void givenOrders_whenFindAllByUserEmail_thenGetCorrectOrdersSize() {
+        Set<Role> roles = Stream.of(new Role(1L, "USER", null)).collect(Collectors.toSet());
+        User user = new User(1L, "jared.mccarthy@mail.com", "123456", "Jared", "Mccarthy", null, roles, true);
+        List<OrderItem> orderItems = new ArrayList<>();
+        ZonedDateTime createDate = ZonedDateTime.now();
+        List<Order> orders = Stream.of(
+                new Order(1L, BigDecimal.TEN, orderItems, createDate, createDate, user)
+        ).collect(Collectors.toList());
+
+        String userEmail = "jared.mccarthy@mail.com";
+        doReturn(user).when(userService).findByEmail(userEmail);
+        doReturn(orders).when(orderRepository).findByUserEmail(userEmail);
+
+        List<Order> actualOrders = orderService.findUserOrders(userEmail);
         int expectedOrdersSize = orders.size();
         int actualOrdersSize = actualOrders.size();
         assertEquals(expectedOrdersSize, actualOrdersSize);

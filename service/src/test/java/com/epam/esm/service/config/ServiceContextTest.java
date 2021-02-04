@@ -4,6 +4,7 @@ import com.epam.esm.config.ResourceBundleConfig;
 import com.epam.esm.repository.*;
 import com.epam.esm.service.*;
 import com.epam.esm.service.impl.*;
+import com.epam.esm.specification.GiftCertificateSpecification;
 import com.epam.esm.util.Translator;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,11 @@ import org.springframework.context.annotation.Import;
 public class ServiceContextTest {
     @Autowired
     private Translator translator;
+
+    @Bean
+    public GiftCertificateSpecification giftCertificateSpecification() {
+        return Mockito.mock(GiftCertificateSpecification.class);
+    }
 
     /**
      * Repositories
@@ -71,8 +77,8 @@ public class ServiceContextTest {
     }
 
     @Bean
-    public GiftCertificateService giftCertificateService(GiftCertificateRepository certificateRepository, TagService tagService) {
-        return new GiftCertificateServiceImpl(certificateRepository, tagService, translator);
+    public GiftCertificateService giftCertificateService(GiftCertificateRepository certificateRepository, TagService tagService, GiftCertificateSpecification certificateSpecification) {
+        return new GiftCertificateServiceImpl(certificateRepository, tagService, translator, certificateSpecification);
     }
 
     @Bean

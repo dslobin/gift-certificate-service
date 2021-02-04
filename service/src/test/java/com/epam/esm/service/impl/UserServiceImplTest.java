@@ -1,15 +1,19 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.dto.SignUpRequest;
 import com.epam.esm.entity.*;
+import com.epam.esm.exception.EmailExistException;
 import com.epam.esm.exception.UserNotFoundException;
 import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.repository.UserRepository;
+import com.epam.esm.service.RoleService;
 import com.epam.esm.service.UserService;
 import com.epam.esm.service.config.ServiceContextTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +31,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doReturn;
 
@@ -37,6 +42,8 @@ class UserServiceImplTest {
     private UserRepository userRepository;
     @Autowired
     private UserService userService;
+    @MockBean
+    private RoleService roleService;
     @Autowired
     private OrderRepository orderRepository;
 
@@ -103,6 +110,51 @@ class UserServiceImplTest {
 
         assertThat(actualUser).isNotNull();
         assertEquals(user.getEmail(), actualUser.getEmail());
+    }
+
+    @Test
+    void givenUserData_whenCreate_thenGetCorrectUser() {
+        String roleUserName = "ROLE_USER";
+        Role roleUser = new Role(1L, roleUserName, null);
+        Set<Role> roles = Stream.of(roleUser).collect(Collectors.toSet());
+        String email = "jared.mccarthy@mail.com";
+        String password = "123456";
+        String firstName = "Jared";
+        String lastName = "Mccarthy";
+        User user = new User(0L, email, password, firstName, lastName, null, roles, true);
+        Cart cart = new Cart(user);
+        user.setCart(cart);
+
+        given(userRepository.findByEmail(email)).willReturn(Optional.empty());
+        given(roleService.findByName(roleUserName)).willReturn(Optional.of(roleUser));
+        given(userRepository.save(any(User.class))).willReturn(user);
+
+        SignUpRequest request = new SignUpRequest(email, password, firstName, lastName);
+        User actualUser = userService.create(request);
+
+        assertThat(actualUser).isNotNull();
+        assertEquals(user.getEmail(), actualUser.getEmail());
+    }
+
+    @Test
+    void givenUserData_whenCreate_thenGetEmailExistException() {
+        String roleUserName = "ROLE_USER";
+        Role roleUser = new Role(1L, roleUserName, null);
+        Set<Role> roles = Stream.of(roleUser).collect(Collectors.toSet());
+        String email = "jared.mccarthy@mail.com";
+        String password = "123456";
+        String firstName = "Jared";
+        String lastName = "Mccarthy";
+        User user = new User(0L, email, password, firstName, lastName, null, roles, true);
+        Cart cart = new Cart(user);
+        user.setCart(cart);
+
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+
+        SignUpRequest request = new SignUpRequest(email, password, firstName, lastName);
+        assertThrows(EmailExistException.class, () -> {
+            userService.create(request);
+        });
     }
 
     @Test
