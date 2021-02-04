@@ -80,6 +80,7 @@ public class UserServiceImpl implements UserService {
         Role roleUser = roleService.findByName(ROLE_USER)
                 .orElseThrow(() -> new RoleNotFoundException(String.format(translator.toLocale("error.notFound.roleName"), ROLE_USER)));
         user.setRoles(Collections.singleton(roleUser));
+        user.setEnabled(true);
 
         return userRepository.save(user);
     }

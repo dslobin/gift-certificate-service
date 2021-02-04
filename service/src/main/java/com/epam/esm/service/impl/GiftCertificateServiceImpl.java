@@ -37,6 +37,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final GiftCertificateRepository certificateRepository;
     private final TagService tagService;
     private final Translator translator;
+    private final GiftCertificateSpecification certificateSpecification;
 
     private static final String NAME = "name";
     private static final String CREATE_DATE = "createDate";
@@ -85,13 +86,13 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     ) {
         List<Specification<GiftCertificate>> specifications = new ArrayList<>();
         if (tags == null || !tags.isEmpty()) {
-            specifications.add(GiftCertificateSpecification.certificateTagsIn(tags));
+            specifications.add(certificateSpecification.certificateTagsIn(tags));
         }
         if (!StringUtils.isEmpty(certificateName)) {
-            specifications.add(GiftCertificateSpecification.certificateNameLike(certificateName));
+            specifications.add(certificateSpecification.certificateNameLike(certificateName));
         }
         if (!StringUtils.isEmpty(certificateDescription)) {
-            specifications.add(GiftCertificateSpecification.certificateDescriptionLike(certificateDescription));
+            specifications.add(certificateSpecification.certificateDescriptionLike(certificateDescription));
         }
 
         return createSpecification(specifications);
