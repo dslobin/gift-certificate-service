@@ -36,8 +36,6 @@ class UserControllerTest {
     private UserService userService;
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private static final String PARAM_PAGE = "page";
     private static final String PARAM_SIZE = "size";

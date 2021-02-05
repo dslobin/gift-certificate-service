@@ -1,6 +1,5 @@
 package com.epam.esm.controller;
 
-import com.epam.esm.dto.CartItemDto;
 import com.epam.esm.dto.RoleDto;
 import com.epam.esm.dto.UserDto;
 import com.epam.esm.entity.Cart;
@@ -28,7 +27,8 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
@@ -64,25 +64,6 @@ class CartControllerTest {
                 .andExpect(content().contentType(MediaTypes.HAL_JSON))
                 .andExpect(jsonPath("$.userEmail", Matchers.is(userEmail)));
     }
-
-    // TODO: обновить тесты контроллерра корзины
-    /*@Test
-    @WithMockUser(username = "test", password = "test", roles = "USER")
-    void givenCartItemDto_whenAddToCart_thenGetUpdatedCart() throws Exception {
-        Set<Role> roles = Stream.of(new Role(1L, "USER", null)).collect(Collectors.toSet());
-        User user = new User(1L, "jared.mccarthy@mail.com", "123456", "Jared", "Mccarthy", null, roles, true);
-        Cart cart = new Cart(user);
-        when(cartService.addToCart(any(String.class), any(Long.class), any(Integer.class))).thenReturn(cart);
-
-
-        String userEmail = cart.getUser().getEmail();
-        mockMvc.perform(put("/api/cart")
-                .content(objectMapper.writeValueAsString(new CartItemDto(1, 1, "jared.mccarthy@mail.com")))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaTypes.HAL_JSON))
-                .andExpect(jsonPath("$.userEmail", Matchers.is(userEmail)));
-    }*/
 
     @Test
     @WithMockUser(username = "test", password = "test", roles = "USER")

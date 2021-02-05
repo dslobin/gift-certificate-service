@@ -106,45 +106,6 @@ class CartServiceImplTest {
     }
 
     @Test
-    void givenOrderItem_whenManageCart_thenGetCorrectCartItemCount() {
-        Set<Role> roles = Stream.of(new Role(1L, "USER", null)).collect(Collectors.toSet());
-        User user = new User(1L, "jared.mccarthy@mail.com", "123456", "Jared", "Mccarthy", null, roles, true);
-        Cart cart = new Cart(user);
-        ZonedDateTime createDate = ZonedDateTime.now();
-        GiftCertificate certificate = new GiftCertificate(
-                1L,
-                "Culinary master class Italian cuisine",
-                "A culinary master class is an opportunity to become a Chef of a real Italian restaurant for 3 hours.",
-                BigDecimal.valueOf(95.00),
-                createDate,
-                createDate.plusDays(3),
-                Duration.ofDays(14),
-                new HashSet<>(),
-                true
-        );
-
-        given(userService.findByEmail(any(String.class))).willReturn(user);
-        given(cartDao.findById(any(Long.class))).willReturn(Optional.of(cart));
-        given(certificateService.findById(any(Long.class))).willReturn(certificate);
-        given(cartDao.save(cart)).willReturn(cart);
-
-        String userEmail = "jared.mccarthy@mail.com";
-        long certificateId = certificate.getId();
-        int quantity = 1;
-        Cart actualCart = cartService.addToCart(userEmail, certificateId, quantity);
-
-        quantity = 2;
-        cartService.addToCart(userEmail, certificateId, quantity);
-
-        quantity = 0;
-        actualCart = cartService.addToCart(userEmail, certificateId, quantity);
-
-        assertThat(actualCart).isNotNull();
-        int cartItemsCount = 1;
-        assertEquals(cartItemsCount, actualCart.getItemsCount());
-    }
-
-    @Test
     void givenOrderItem_whenAddToCartUnavailableItem_thenAddingWontHappen() {
         Set<Role> roles = Stream.of(new Role(1L, "USER", null)).collect(Collectors.toSet());
         User user = new User(1L, "jared.mccarthy@mail.com", "123456", "Jared", "Mccarthy", null, roles, true);
