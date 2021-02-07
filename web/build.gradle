@@ -1,9 +1,8 @@
+apply plugin: 'war'
+
 dependencies {
     implementation project(':model')
     implementation project(':persistence')
     implementation project(':service')
-}
-
-bootJar {
-    enabled = true
+    providedRuntime group: 'org.springframework.boot', name: 'spring-boot-starter-tomcat', version: '2.3.5.RELEASE'
 }

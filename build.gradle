@@ -7,6 +7,10 @@ plugins {
 allprojects {
     group 'com.epam'
     version '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
 }
 
 subprojects {
@@ -16,10 +20,6 @@ subprojects {
     apply plugin: 'jacoco'
 
     sourceCompatibility = 1.8
-
-    repositories {
-        mavenCentral()
-    }
 
     dependencies {
         implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: '2.3.5.RELEASE'
@@ -67,8 +67,7 @@ subprojects {
                         'com/epam/esm/util/**',
                         'com/epam/esm/advice/**',
                         'com/epam/esm/Application.class',
-                ]
-                )
+                ])
             }))
         }
     }
@@ -82,5 +81,37 @@ subprojects {
                 ]
             }
         }
+    }
+}
+
+task generateMergedReport(type: JacocoReport) {
+    dependsOn = subprojects.test
+    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(subprojects.sourceSets.main.output)
+
+    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    'com/epam/esm/entity',
+                    'com/epam/esm/dto',
+                    'com/epam/esm/mapper',
+                    'com/epam/esm/specification',
+                    'com/epam/esm/security/jwt',
+                    'com/epam/esm/config/**',
+                    'com/epam/esm/exception/**',
+                    'com/epam/esm/util/**',
+                    'com/epam/esm/advice/**',
+                    'com/epam/esm/Application.class',
+            ])
+        }))
+    }
+
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.enabled true
     }
 }
