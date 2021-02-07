@@ -48,7 +48,7 @@ public class CartServiceImpl implements CartService {
             throws GiftCertificateNotFoundException, UserNotFoundException {
         Cart cart = getCartOrCreate(userEmail);
         GiftCertificate giftCertificate = certificateService.findById(certificateId);
-        if (giftCertificate.isAvailable()) {
+        if (giftCertificate != null && giftCertificate.isAvailable()) {
             updateCart(cart, giftCertificate, quantity);
             return cartRepository.save(cart);
         }
@@ -85,10 +85,6 @@ public class CartServiceImpl implements CartService {
     }
 
     private void updateCart(Cart cart, GiftCertificate certificate, int newQuantity) {
-        if (certificate == null) {
-            return;
-        }
-
         if (newQuantity > 0) {
             CartItem existedItem = findItemById(cart, certificate.getId());
             if (existedItem == null) {

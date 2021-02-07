@@ -8,7 +8,6 @@ import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.service.CartService;
 import com.epam.esm.service.OrderService;
 import com.epam.esm.service.UserService;
-import com.epam.esm.util.Translator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderDao;
     private final UserService userService;
     private final CartService cartService;
-    private final Translator translator;
+
+    private static final String ORDER_NOT_FOUND = "error.notFound.order";
+    private static final String EMPTY_CART = "error.notFound.order";
 
     @Override
     @Transactional(readOnly = true)
@@ -49,7 +50,7 @@ public class OrderServiceImpl implements OrderService {
     public Order findUserOrder(String userEmail, long orderId)
             throws OrderNotFoundException {
         return orderDao.findByIdAndUserEmail(orderId, userEmail)
-                .orElseThrow(() -> new OrderNotFoundException(String.format(translator.toLocale("error.notFound.tagId"), orderId, userEmail)));
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND, orderId, userEmail));
     }
 
     @Override
@@ -61,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
         Cart cart = cartService.getCartOrCreate(user.getEmail());
         if (cartService.isCartEmpty(cart)) {
             log.error("The user with email = {} tried to create an order with an empty cart", userEmail);
-            throw new EmptyCartException(translator.toLocale("error.badRequest.emptyCart"));
+            throw new EmptyCartException(EMPTY_CART);
         }
 
         Order order = createNewOrder(user, cart);

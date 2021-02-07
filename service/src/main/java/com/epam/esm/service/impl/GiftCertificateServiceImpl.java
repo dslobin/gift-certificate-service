@@ -8,7 +8,6 @@ import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.TagService;
 import com.epam.esm.specification.GiftCertificateSpecification;
-import com.epam.esm.util.Translator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -36,12 +35,13 @@ import java.util.stream.Stream;
 public class GiftCertificateServiceImpl implements GiftCertificateService {
     private final GiftCertificateRepository certificateRepository;
     private final TagService tagService;
-    private final Translator translator;
     private final GiftCertificateSpecification certificateSpecification;
 
     private static final String NAME = "name";
     private static final String CREATE_DATE = "createDate";
     private static final String SORT_DELIMITER = ",";
+
+    private static final String CERTIFICATE_NOT_FOUND = "error.notFound.certificate";
 
     @Override
     @Transactional(readOnly = true)
@@ -141,8 +141,7 @@ public class GiftCertificateServiceImpl implements GiftCertificateService {
     public GiftCertificate findById(long id)
             throws GiftCertificateNotFoundException {
         return certificateRepository.findById(id)
-                .orElseThrow(() ->
-                        new GiftCertificateNotFoundException(String.format(translator.toLocale("error.notFound.certificate"), id)));
+                .orElseThrow(() -> new GiftCertificateNotFoundException(CERTIFICATE_NOT_FOUND, id));
     }
 
     @Override

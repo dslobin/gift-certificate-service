@@ -2,6 +2,8 @@ package com.epam.esm.advice;
 
 import com.epam.esm.exception.*;
 import com.epam.esm.security.jwt.JwtAuthenticationException;
+import com.epam.esm.util.Translator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +23,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// TODO: 11.12.2020 локализация
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
+    private final Translator translator;
 
     @ExceptionHandler(GiftCertificateNotFoundException.class)
     public ResponseEntity<Object> handleCertificateNotFoundException(
@@ -34,7 +37,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage(), e.getArgs()))
                 .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.GIFT_CERTIFICATE))
                 .path(request.getDescription(false))
                 .build();
@@ -51,7 +54,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage(), e.getArgs()))
                 .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.TAG))
                 .path(request.getDescription(false))
                 .build();
@@ -68,7 +71,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage(), e.getArgs()))
                 .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.ROLE))
                 .path(request.getDescription(false))
                 .build();
@@ -85,7 +88,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage(), e.getArgs()))
                 .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.USER_ACCOUNT))
                 .path(request.getDescription(false))
                 .build();
@@ -103,7 +106,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.NOT_FOUND.value())
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage(), e.getArgs()))
                 .errorCode(getErrorCode(HttpStatus.NOT_FOUND, ResourceCode.ORDER))
                 .path(request.getDescription(false))
                 .build();
@@ -120,7 +123,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage(), e.getArgs()))
                 .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.TAG))
                 .path(request.getDescription(false))
                 .build();
@@ -137,7 +140,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage(), e.getArgs()))
                 .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.USER_ACCOUNT))
                 .path(request.getDescription(false))
                 .build();
@@ -155,7 +158,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage()))
                 .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.CART))
                 .path(request.getDescription(false))
                 .build();
@@ -173,7 +176,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage()))
                 .errorCode(getErrorCode(HttpStatus.BAD_REQUEST, ResourceCode.NOT_PROVIDED))
                 .path(request.getDescription(false))
                 .build();
@@ -191,7 +194,7 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message(e.getMessage())
+                .message(translator.toLocale(e.getMessage()))
                 .errorCode(getErrorCode(HttpStatus.UNAUTHORIZED, ResourceCode.USER_ACCOUNT))
                 .path(request.getDescription(false))
                 .build();

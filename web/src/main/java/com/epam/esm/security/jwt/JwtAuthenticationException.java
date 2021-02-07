@@ -3,11 +3,8 @@ package com.epam.esm.security.jwt;
 import org.springframework.security.core.AuthenticationException;
 
 public class JwtAuthenticationException extends AuthenticationException {
-    public JwtAuthenticationException(String message, Throwable t) {
-        super(message, t);
-    }
 
-    public JwtAuthenticationException(String message) {
+    JwtAuthenticationException(String message) {
         super(message);
     }
 }

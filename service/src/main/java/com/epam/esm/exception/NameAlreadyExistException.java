@@ -1,7 +1,7 @@
 package com.epam.esm.exception;
 
-public class NameAlreadyExistException extends RuntimeException {
-    public NameAlreadyExistException(String message) {
-        super(message);
+public class NameAlreadyExistException extends RestException {
+    public NameAlreadyExistException(String message, Object... args) {
+        super(message, args);
     }
 }

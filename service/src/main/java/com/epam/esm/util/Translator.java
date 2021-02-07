@@ -19,4 +19,11 @@ public class Translator {
         log.debug("Locale language: {}", locale.getLanguage());
         return messageSource.getMessage(msgCode, null, locale);
     }
+
+    public String toLocale(String msgCode, Object ...msgArgs) {
+        Locale locale = LocaleContextHolder.getLocale();
+        log.debug("Locale language: {}", locale.getLanguage());
+        log.debug("Arguments passed to the message of the translator service: {}", msgArgs);
+        return messageSource.getMessage(msgCode, msgArgs, locale);
+    }
 }

@@ -9,11 +9,10 @@ import com.epam.esm.repository.OrderRepository;
 import com.epam.esm.repository.UserRepository;
 import com.epam.esm.service.RoleService;
 import com.epam.esm.service.UserService;
-import com.epam.esm.util.Translator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,9 +27,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final OrderRepository orderRepository;
-    private final Translator translator;
+    private final PasswordEncoder encoder;
 
     private static final String ROLE_USER = "ROLE_USER";
+    private static final String USER_ID_NOT_FOUND = "error.notFound.userId";
+    private static final String USER_EMAIL_NOT_FOUND = "error.notFound.userEmail";
+    private static final String USER_EMAIL_EXIST = "error.badRequest.emailExist";
+    private static final String ROLE_NAME_NOT_FOUND = "error.notFound.roleName";
 
     @Override
     @Transactional(readOnly = true)
@@ -44,15 +47,14 @@ public class UserServiceImpl implements UserService {
     public User findById(long id)
             throws UserNotFoundException {
         return userRepository.findById(id)
-                .orElseThrow(() ->
-                        new UserNotFoundException(String.format(translator.toLocale("error.notFound.userId"), id)));
+                .orElseThrow(() -> new UserNotFoundException(USER_ID_NOT_FOUND, id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(String.format(translator.toLocale("error.notFound.userEmail"), email)));
+                .orElseThrow(() -> new UserNotFoundException(USER_EMAIL_NOT_FOUND, email));
     }
 
     @Override
@@ -64,13 +66,12 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOptional = userRepository.findByEmail(userEmail);
         if (userOptional.isPresent()) {
             log.error("A user with this email: {} already exists", userEmail);
-            throw new EmailExistException(String.format(translator.toLocale("error.badRequest.emailExist"), userEmail));
+            throw new EmailExistException(USER_EMAIL_EXIST, userEmail);
         }
 
         User user = new User();
 
         user.setEmail(userEmail);
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String hashedPassword = encoder.encode(userData.getPassword());
         user.setPassword(hashedPassword);
         user.setFirstName(userData.getFirstName());
@@ -78,7 +79,7 @@ public class UserServiceImpl implements UserService {
         Cart userCart = new Cart(user);
         user.setCart(userCart);
         Role roleUser = roleService.findByName(ROLE_USER)
-                .orElseThrow(() -> new RoleNotFoundException(String.format(translator.toLocale("error.notFound.roleName"), ROLE_USER)));
+                .orElseThrow(() -> new RoleNotFoundException(ROLE_NAME_NOT_FOUND, ROLE_USER));
         user.setRoles(Collections.singleton(roleUser));
         user.setEnabled(true);
 

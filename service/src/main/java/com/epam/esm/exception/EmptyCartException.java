@@ -1,7 +1,7 @@
 package com.epam.esm.exception;
 
-public class EmptyCartException extends RuntimeException {
-    public EmptyCartException(String message) {
-        super(message);
+public class EmptyCartException extends RestException {
+    public EmptyCartException(String message, Object ...args) {
+        super(message, args);
     }
 }

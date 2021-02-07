@@ -31,6 +31,8 @@ public class JwtTokenProvider {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    private static final String BAD_REQUEST_JWT = "error.badRequest.jwt";
+
     @PostConstruct
     protected void init() {
         secret = Base64.getEncoder().encodeToString(secret.getBytes());
@@ -51,13 +53,13 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public Authentication getAuthentication(String token) {
+    Authentication getAuthentication(String token) {
         String username = getUsername(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
-    public boolean validateToken(String token) throws JwtAuthenticationException {
+    boolean validateToken(String token) throws JwtAuthenticationException {
         try {
             Jws<Claims> claims = Jwts.parser()
                     .setSigningKey(secret)
@@ -68,7 +70,7 @@ public class JwtTokenProvider {
                     .before(new Date());
         } catch (JwtException | IllegalArgumentException e) {
             log.error("JWT token {} is expired or invalid", token);
-            throw new JwtAuthenticationException("JWT token is expired or invalid");
+            throw new JwtAuthenticationException(BAD_REQUEST_JWT);
         }
     }
 

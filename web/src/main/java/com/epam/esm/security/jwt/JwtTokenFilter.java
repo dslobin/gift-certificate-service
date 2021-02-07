@@ -47,12 +47,13 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private String createErrorResponse(String errorMessage, String requestPath)
             throws JsonProcessingException {
+        int errorCode = ControllerExceptionHandler.getErrorCode(HttpStatus.UNAUTHORIZED, ResourceCode.USER_ACCOUNT);
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(ZonedDateTime.now())
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                 .message(errorMessage)
-                .errorCode(ControllerExceptionHandler.getErrorCode(HttpStatus.UNAUTHORIZED, ResourceCode.USER_ACCOUNT))
+                .errorCode(errorCode)
                 .path(requestPath)
                 .build();
         ObjectMapper objectMapper = new ObjectMapper();

@@ -28,6 +28,8 @@ public class JwtAuthenticationService implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final RoleMapper roleMapper;
 
+    private static final String BAD_CREDENTIALS = "error.badRequest.badCredentials";
+
     @Override
     public AuthResponse authenticate(String email, String password)
             throws UserNotFoundException, BadCredentialsException {
@@ -41,7 +43,7 @@ public class JwtAuthenticationService implements AuthenticationService {
             return new AuthResponse(userEmail, jwtToken, roleMapper.toDto(userRoles));
         } catch (AuthenticationException e) {
             log.error("The user: {} entered an incorrect username or password", email);
-            throw new BadCredentialsException("Invalid username or password");
+            throw new BadCredentialsException(BAD_CREDENTIALS);
         }
     }
 
