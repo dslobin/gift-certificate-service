@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -92,6 +93,7 @@ public class GiftCertificateController {
      * @return created gift certificate
      */
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<GiftCertificateDto> createCertificate(
             @Valid @RequestBody GiftCertificateDto certificateDto
     ) {
@@ -109,6 +111,7 @@ public class GiftCertificateController {
      * @throws GiftCertificateNotFoundException if the specified gift certificate does not exist
      */
     @PutMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<GiftCertificateDto> updateCertificate(@Valid @RequestBody GiftCertificateDto certificateDto)
             throws GiftCertificateNotFoundException {
         GiftCertificate giftCertificate = certificateMapper.toModel(certificateDto);
@@ -125,6 +128,7 @@ public class GiftCertificateController {
      * @throws GiftCertificateNotFoundException if the specified gift certificate does not exist
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteCertificate(@Min(1) @PathVariable Long id)
             throws GiftCertificateNotFoundException {
         GiftCertificate certificate = giftCertificateService.findById(id);

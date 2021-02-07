@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -86,6 +87,7 @@ public class TagController {
      * @throws TagNotFoundException if the specified tag does not exist
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteTag(@Min(1) @PathVariable Long id)
             throws TagNotFoundException {
         Tag tag = tagService.findById(id);
@@ -100,6 +102,7 @@ public class TagController {
      * @throws NameAlreadyExistException if tag with such name already saved in data storage
      */
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<TagDto> createTag(@Valid @RequestBody TagDto tagDto)
             throws NameAlreadyExistException {
         Tag createdTag = tagService.create(tagMapper.toModel(tagDto));
