@@ -166,6 +166,7 @@ class GiftCertificateControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "test", password = "test", roles = "ADMIN")
     void givenGiftCertificate_whenCreate_thenReturnCreatedGiftCertificateDto() throws Exception {
         long certificateId = 1;
         GiftCertificate certificate = getOneCertificate();

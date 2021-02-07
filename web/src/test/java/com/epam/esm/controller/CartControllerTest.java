@@ -1,5 +1,6 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.dto.AddCartItemDto;
 import com.epam.esm.dto.RoleDto;
 import com.epam.esm.dto.UserDto;
 import com.epam.esm.entity.Cart;
@@ -27,8 +28,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
@@ -61,6 +61,27 @@ class CartControllerTest {
                 .content(objectMapper.writeValueAsString(userDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaTypes.HAL_JSON))
+                .andExpect(jsonPath("$.userEmail", Matchers.is(userEmail)));
+    }
+
+    @Test
+    @WithMockUser(username = "jared.mccarthy@mail.com", password = "123456", roles = "USER")
+    void givenCartItemDto_whenAddToCart_thenGetUpdatedCart() throws Exception {
+        Set<Role> roles = Stream.of(new Role(1L, "USER", null)).collect(Collectors.toSet());
+        String userEmail = "jared.mccarthy@mail.com";
+        User user = new User(1L, userEmail, "123456", "Jared", "Mccarthy", null, roles, true);
+        Cart cart = new Cart(user);
+        user.setCart(cart);
+
+        long certificateId = 1;
+        int certificateQuantity = 2;
+        when(cartService.addToCart(userEmail, certificateId, certificateQuantity)).thenReturn(cart);
+
+        mockMvc.perform(put("/api/cart")
+                .content(objectMapper.writeValueAsString(new AddCartItemDto(certificateId, certificateQuantity)))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON))
                 .andExpect(jsonPath("$.userEmail", Matchers.is(userEmail)));
     }

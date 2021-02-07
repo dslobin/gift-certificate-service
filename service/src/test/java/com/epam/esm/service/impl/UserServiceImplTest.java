@@ -113,6 +113,16 @@ class UserServiceImplTest {
     }
 
     @Test
+    void givenUserEmail_whenFindByEmail_thenThrowUserNotFoundException() {
+        String userEmail = "jared.mccarthy@mail.com";
+        given(userRepository.findByEmail(userEmail)).willReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> {
+            userService.findByEmail(userEmail);
+        });
+    }
+
+    @Test
     void givenUserData_whenCreate_thenGetCorrectUser() {
         String roleUserName = "ROLE_USER";
         Role roleUser = new Role(1L, roleUserName, null);

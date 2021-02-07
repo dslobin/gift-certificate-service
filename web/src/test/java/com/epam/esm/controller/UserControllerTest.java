@@ -1,6 +1,8 @@
 package com.epam.esm.controller;
 
+import com.epam.esm.entity.Cart;
 import com.epam.esm.entity.Role;
+import com.epam.esm.entity.Tag;
 import com.epam.esm.entity.User;
 import com.epam.esm.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,5 +85,30 @@ class UserControllerTest {
                 .andExpect(content().contentType(MediaTypes.HAL_JSON))
                 .andExpect(jsonPath("$.id", Matchers.is(userId), Long.class))
                 .andExpect(jsonPath("$.email", Matchers.is(userEmail)));
+    }
+
+    @Test
+    @WithMockUser(username = "test", password = "test", roles = "ADMIN")
+    void givenUserId_whenGetMostUsedUserTag_thenReturnCorrectTagDtos() throws Exception {
+        Set<Role> roles = Stream.of(
+                new Role(1L, "USER", null)
+        ).collect(Collectors.toSet());
+        String userEmail = "jared.mccarthy@mail.com";
+        long userId = 1L;
+        User user = new User(userId, userEmail, "123456", "Jared", "Mccarthy", null, roles, true);
+        Cart cart = new Cart(user);
+        user.setCart(cart);
+
+        Tag tagActiveRest = new Tag(1L, "active_rest", null);
+        Tag tagRomantic = new Tag(2L, "romantic", null);
+        Set<Tag> tags = Stream.of(tagActiveRest, tagRomantic).collect(Collectors.toSet());
+
+        when(userService.findById(any(Long.class))).thenReturn(user);
+        when(userService.findMostUsedUserTag(userEmail)).thenReturn(tags);
+
+        mockMvc.perform(get("/api/users/{id}/tag", userId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", Matchers.hasSize(2)));
     }
 }

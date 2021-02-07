@@ -23,9 +23,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
@@ -96,7 +96,7 @@ class TagControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "test", password = "test", roles = "USER")
+    @WithMockUser(username = "test", password = "test", roles = "ADMIN")
     void givenTag_whenCreate_thenReturnCreatedTagDto() throws Exception {
         long tagId = 1;
         String tagName = "romantics";
@@ -112,5 +112,19 @@ class TagControllerTest {
                 .andExpect(content().contentType(MediaTypes.HAL_JSON))
                 .andExpect(jsonPath("$.id", Matchers.is(tagId), Long.class))
                 .andExpect(jsonPath("$.name", Matchers.is(tagName)));
+    }
+
+    @Test
+    @WithMockUser(username = "test", password = "test", roles = "ADMIN")
+    void givenTagId_whenDelete_thenReturnHttpStatusCode204() throws Exception {
+        long tagId = 1;
+        String tagName = "romantics";
+        Tag tagRomantics = new Tag(tagId, tagName, null);
+
+        when(tagService.findById(any(Long.class))).thenReturn(tagRomantics);
+
+        mockMvc.perform(delete("/api/tags/{id}", String.valueOf(tagId))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
     }
 }

@@ -25,7 +25,7 @@ class RoleServiceImplTest {
     private RoleService roleService;
 
     @Test
-    void givenTag_whenFindByName_thenGetCorrectTag() {
+    void givenRole_whenFindByName_thenGetCorrectRole() {
         long roleId = 1L;
         String roleName = "ROLE_ADMIN";
         Role role = new Role(roleId, roleName, null);

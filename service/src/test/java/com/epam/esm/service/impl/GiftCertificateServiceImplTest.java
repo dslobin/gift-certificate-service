@@ -1,15 +1,24 @@
 package com.epam.esm.service.impl;
 
+import com.epam.esm.dto.CertificateSearchCriteria;
 import com.epam.esm.entity.GiftCertificate;
 import com.epam.esm.entity.Tag;
 import com.epam.esm.exception.GiftCertificateNotFoundException;
 import com.epam.esm.repository.GiftCertificateRepository;
 import com.epam.esm.service.GiftCertificateService;
 import com.epam.esm.service.config.ServiceContextTest;
+import com.epam.esm.specification.GiftCertificateSpecification;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -24,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -36,7 +46,31 @@ class GiftCertificateServiceImplTest {
     @Autowired
     private GiftCertificateRepository certificateRepository;
     @Autowired
+    private GiftCertificateSpecification specification;
+    @Autowired
     private GiftCertificateService certificateService;
+    @MockBean
+    private Specification<GiftCertificate> mockedSpec;
+
+    @Test
+    void givenCertificates_whenFindAllWithCertificateCriteria_thenGetCorrectCertificateSize() {
+        List<GiftCertificate> certificates = getCertificates();
+        int page = 0;
+        int size = Integer.MAX_VALUE;
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<GiftCertificate> certificatePage = new PageImpl<>(certificates, pageable, certificates.size());
+
+        given(certificateRepository.findAll(ArgumentMatchers.<Specification<GiftCertificate>>any(), any(Pageable.class))).willReturn(certificatePage);
+
+        Set<String> searchedTags = Stream.of("new", "exclusive").collect(Collectors.toSet());
+        CertificateSearchCriteria criteria = new CertificateSearchCriteria(searchedTags, "param1", "param2", "name,asc", "createDate,desc");
+
+        List<GiftCertificate> actualCertificates = certificateService.findAll(criteria, pageable);
+
+        int expectedCertificatesSize = certificates.size();
+        int actualCertificatesSize = actualCertificates.size();
+        assertEquals(expectedCertificatesSize, actualCertificatesSize);
+    }
 
     private List<GiftCertificate> getCertificates() {
         Set<Tag> tags = Stream.of(
@@ -71,7 +105,7 @@ class GiftCertificateServiceImplTest {
     }
 
     @Test
-    void givenCertificateDto_whenSave_thenGetOk() {
+    void givenCertificate_whenSave_thenGetOk() {
         GiftCertificate certificate = getOneCertificate();
 
         given(certificateRepository.save(any(GiftCertificate.class))).willReturn(certificate);
@@ -81,7 +115,18 @@ class GiftCertificateServiceImplTest {
     }
 
     @Test
-    void givenCertificateDto_whenUpdate_thenGetOk() {
+    void givenCertificate_whenSaveCertificateWithoutTags_thenGetOk() {
+        GiftCertificate certificate = getOneCertificate();
+        certificate.setTags(null);
+
+        given(certificateRepository.save(any(GiftCertificate.class))).willReturn(certificate);
+
+        GiftCertificate savedCertificate = certificateService.create(certificate);
+        assertThat(savedCertificate).isNotNull();
+    }
+
+    @Test
+    void givenCertificate_whenUpdate_thenGetOk() {
         GiftCertificate certificate = getOneCertificate();
 
         given(certificateRepository.findById(certificate.getId())).willReturn(Optional.of(certificate));
