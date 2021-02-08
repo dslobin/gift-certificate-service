@@ -1,6 +1,5 @@
 package com.epam.esm.service;
 
-import com.epam.esm.dto.CartDto;
 import com.epam.esm.entity.Cart;
 import com.epam.esm.exception.GiftCertificateNotFoundException;
 import com.epam.esm.exception.UserNotFoundException;

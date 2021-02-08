@@ -6,6 +6,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 class RestException extends RuntimeException {
-    protected String message;
-    protected Object[] args;
+    protected final String message;
+    protected transient final Object[] args;
 }

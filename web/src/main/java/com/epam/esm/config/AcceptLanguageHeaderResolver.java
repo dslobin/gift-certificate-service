@@ -17,7 +17,7 @@ import java.util.Locale;
 @Configuration
 @Slf4j
 public class AcceptLanguageHeaderResolver extends AcceptHeaderLocaleResolver {
-    private final List<Locale> LOCALES = Arrays.asList(
+    private static final List<Locale> LOCALES = Arrays.asList(
             new Locale("en"),
             new Locale("ru")
     );
